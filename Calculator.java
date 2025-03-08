@@ -1,7 +1,9 @@
 public class Calculator<T> {
 
     // Constructor privado para evitar instanciación externa
-    private Calculator() {}
+    private Calculator() {
+        
+    }
 
     // Método de operación genérica
     public T operation(char operator, T value1, T value2) {

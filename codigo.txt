@@ -1,0 +1,6 @@
+(defun factorial (n)
+
+  (cond
+    ((<= n 1) 1)  ;; Caso base: factorial de 0 o 1 es 1
+    (t (* n (factorial (- n 1)))))
+)  
