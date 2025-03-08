@@ -45,6 +45,9 @@ public class Parser {
             // Verificar si el token acumulado es una palabra clave antes de agregarlo
             if (!token.isEmpty() && KEYWORDS.contains(token)) {
                 tokens.add(token);
+                if(!isNumber(token)){
+                    KEYWORDS.add(token);
+                }
                 token = "";
             }
     
@@ -54,6 +57,9 @@ public class Parser {
                 if (code.startsWith(kw, i)) {
                     if (!token.isEmpty()) {
                         tokens.add(token);
+                        if(!isNumber(token)){
+                            KEYWORDS.add(token);
+                        }
                         token = "";
                     }
                     tokens.add(kw);
@@ -67,7 +73,9 @@ public class Parser {
             if (c == ' ') {
                 if (!token.isEmpty()) {
                     tokens.add(token);
-                    KEYWORDS.add(token);
+                    if (!isNumber(token)) {
+                        KEYWORDS.add(token);
+                    }
                     token = "";
                 }
             } else {
@@ -77,7 +85,9 @@ public class Parser {
     
         if (!token.isEmpty()) {
             tokens.add(token);
-            KEYWORDS.add(token);
+            if(!isNumber(token)){
+                KEYWORDS.add(token);
+            }
         }
     
         return tokens;

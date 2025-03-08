@@ -1,6 +1,3 @@
-(defun factorial (n)
-
-  (cond
-    ((<= n 1) 1)
-    (t (* n (factorial (- n 1)))))
-)  
+(setq lista1 (list 1 2 3))  
+(setq lista2 (list 1 2 3))  
+(equal lista1 lista2)       

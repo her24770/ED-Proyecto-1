@@ -39,3 +39,11 @@ public class Main {
         return codeText;
     }
 }
+
+
+
+
+
+//detectar un texto "" en tokenizador y no agregar 6
+//detectar texto como - _ y otros valores en funciones 6
+// validar que la siguiente letra y no quedarse solo si lo encuentra 9
