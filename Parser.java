@@ -34,6 +34,7 @@ public class Parser {
         return pila.isEmpty(); 
     }
 
+    //funcion para tokenizar
     public ArrayList<String> tokenize(String code) {
         ArrayList<String> tokens = new ArrayList<>();
         String token = "";
@@ -66,6 +67,7 @@ public class Parser {
             if (c == ' ') {
                 if (!token.isEmpty()) {
                     tokens.add(token);
+                    KEYWORDS.add(token);
                     token = "";
                 }
             } else {
@@ -75,6 +77,7 @@ public class Parser {
     
         if (!token.isEmpty()) {
             tokens.add(token);
+            KEYWORDS.add(token);
         }
     
         return tokens;

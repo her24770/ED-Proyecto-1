@@ -1,3 +1,6 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -10,7 +13,7 @@ public class Main {
         ArrayList<HashMap> variables = new ArrayList<>();
         
         Parser parser = new Parser();
-        String code = "(defun hola(x) (+ 2 1 - x)) (setq(y 5)) (quote(y))";
+        String code = readFile("codigo.txt");
         if(parser.cierreParentesis(code)){
             ArrayList<String> tokens = parser.tokenize(code);
             for (String token : tokens) {
@@ -20,5 +23,19 @@ public class Main {
         }else{
             System.out.println("Error: Parentesis no cerrados");
         }
+    }
+
+    public static String readFile(String path) {
+        String codeText="";
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                codeText += line;
+            }
+        } catch (IOException e) {
+            System.out.println("Error en lectura del documento: " + e.getMessage());
+        }
+        System.err.println(codeText);
+        return codeText;
     }
 }
