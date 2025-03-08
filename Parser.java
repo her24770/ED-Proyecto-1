@@ -6,7 +6,7 @@ import java.util.List;
 public class Parser {
 
     public List<String> KEYWORDS = new ArrayList<>(Arrays.asList(
-        "<", ">", "+", "-", "*", "/", "^", "(", ")", "'", 
+        "<", ">", "+", "-", "*", "/", "^", "(", ")", "'","=", 
         "defun", "quote", "setq", "cond", "atom", "list", "equal"
     ));
     public List<String> getKEYWORDS() {
@@ -17,6 +17,7 @@ public class Parser {
     public void setKEYWORDS(List<String> kEYWORDS) {
         KEYWORDS = kEYWORDS;
     }
+    
     //funcion para verificar si los parentesis estan cerrados
     public boolean cierreParentesis(String code) {
         Stack<Character> pila = new Stack<>();
@@ -33,37 +34,49 @@ public class Parser {
         return pila.isEmpty(); 
     }
 
-
-    //funcion para tokenizar
     public ArrayList<String> tokenize(String code) {
         ArrayList<String> tokens = new ArrayList<>();
         String token = "";
-        for (char c : code.toCharArray()) {
-            if (KEYWORDS.contains(String.valueOf(c))) {
-                if (!token.isEmpty()) {
-                    tokens.add(token);
-                    if (!KEYWORDS.contains(token)&&!isNumber(token)) {
-                        KEYWORDS.add(token);
+        
+        for (int i = 0; i < code.length(); i++) {
+            char c = code.charAt(i);
+            
+            // Verificar si el token acumulado es una palabra clave antes de agregarlo
+            if (!token.isEmpty() && KEYWORDS.contains(token)) {
+                tokens.add(token);
+                token = "";
+            }
+    
+            // Detectar palabras clave completas
+            boolean foundKeyword = false;
+            for (String kw : KEYWORDS) {
+                if (code.startsWith(kw, i)) {
+                    if (!token.isEmpty()) {
+                        tokens.add(token);
+                        token = "";
                     }
-                    token = "";
+                    tokens.add(kw);
+                    i += kw.length() - 1; // Avanza hasta el final de la palabra clave
+                    foundKeyword = true;
+                    break;
                 }
-                tokens.add(String.valueOf(c));
-
-            } else if (c == ' ') {
+            }
+            if (foundKeyword) continue;
+    
+            if (c == ' ') {
                 if (!token.isEmpty()) {
                     tokens.add(token);
-                    if (!KEYWORDS.contains(token) && !isNumber(token)) {
-                        KEYWORDS.add(token);
-                    }
                     token = "";
                 }
             } else {
                 token += c;
             }
         }
+    
         if (!token.isEmpty()) {
             tokens.add(token);
         }
+    
         return tokens;
     }
 
@@ -81,4 +94,3 @@ public class Parser {
         }
     }
 }
-    
