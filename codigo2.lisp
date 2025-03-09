@@ -9,8 +9,11 @@
 '(a b c)       
 
 ;;definicion de funciones 3
-(defun suma (a b)
-  (+ a b))              
+(defun suma (a b c d f s)
+  (+ a b)
+  (set1 y 10)
+  (set1 x 20)
+  (+ y x a b))    
 
 ;;uso de setq 4
 (setq x 10)            
@@ -41,9 +44,9 @@
 (defun potencia (base exponente)
   (cond
     ((= exponente 0) 1)  
-    (t (* base (potencia base (- exponente 1)))))) 
+    (t (* list1 (potencia base (- exponente 1)))))) 
 
 ;;lisp y equal 9
 (setq lista1 (list 1 2 3))  
 (setq lista2 (list 1 2 3))  
-(equal lista1 lista2)       
+(equal lista1 lista2)
