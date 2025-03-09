@@ -1,9 +1,10 @@
-import java.lang.reflect.Array;
-import java.security.Key;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Parser {
 
@@ -37,60 +38,16 @@ public class Parser {
 
     //funcion para tokenizar
     public ArrayList<String> tokenize(String code) {
+
         ArrayList<String> tokens = new ArrayList<>();
-        String token = "";
-        
-        for (int i = 0; i < code.length(); i++) {
-            char c = code.charAt(i);
-            
-            // Verificar si el token acumulado es una palabra clave antes de agregarlo
-            if (!token.isEmpty() && KEYWORDS.contains(token)) {
-                tokens.add(token);
-                if(!isNumber(token)){
-                    KEYWORDS.add(token);
-                }
-                token = "";
-            }
-    
-            // Detectar palabras clave completas
-            boolean foundKeyword = false;
-            for (String kw : KEYWORDS) {
-                if (code.startsWith(kw, i)) {
-                    if (!token.isEmpty()) {
-                        tokens.add(token);
-                        if(!isNumber(token)){
-                            KEYWORDS.add(token);
-                        }
-                        token = "";
-                    }
-                    tokens.add(kw);
-                    i += kw.length() - 1; // Avanza hasta el final de la palabra clave
-                    foundKeyword = true;
-                    break;
-                }
-            }
-            if (foundKeyword) continue;
-    
-            if (c == ' ') {
-                if (!token.isEmpty()) {
-                    tokens.add(token);
-                    if (!isNumber(token)) {
-                        KEYWORDS.add(token);
-                    }
-                    token = "";
-                }
-            } else {
-                token += c;
-            }
+
+        Pattern pattern = Pattern.compile("\\(|\\)|'|\\w+|[-+*/^<>=]");
+        Matcher matcher = pattern.matcher(code);
+
+        while (matcher.find()) {
+            tokens.add(matcher.group());
         }
-    
-        if (!token.isEmpty()) {
-            tokens.add(token);
-            if(!isNumber(token)){
-                KEYWORDS.add(token);
-            }
-        }
-    
+
         return tokens;
     }
 
@@ -135,13 +92,13 @@ public class Parser {
                 System.out.println(tokens.get(i));
                 System.out.println(tokens.get(i+1));
                 globalEnviroment=false;
-                if(tokens.get(i+1)=="defun"){
+                if(tokens.get(i+1).equals("defun")){
                     Defun defunNew = new Defun();
                     defunNew.setNombre(tokens.get(i+2));
-                    if(tokens.get(i+3)=="("){
+                    if(tokens.get(i+3).equals("(")){
                         i=i+4;
                         ArrayList<String> parametros = new ArrayList<>();
-                        while(tokens.get(i)!=")"){
+                        while(!tokens.get(i).equals(")")){
                             System.out.println(tokens.get(i));
                             parametros.add(tokens.get(i));
                             i++;
@@ -152,9 +109,9 @@ public class Parser {
                         while(contadorBrackets>=0){
                             System.out.println("prueva contenido defun");
                             System.out.println(tokens.get(i));
-                            if(tokens.get(i)=="("){
+                            if(tokens.get(i).equals("(")){
                                 contadorBrackets++;
-                            }else if(tokens.get(i)==")"){
+                            }else if(tokens.get(i).equals(")")){
                                 contadorBrackets--;
                             }
                             if (contadorBrackets>=0){

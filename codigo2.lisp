@@ -11,8 +11,8 @@
 ;;definicion de funciones 3
 (defun suma (a b c d f s)
   (+ a b)
-  (set1 y 10)
-  (set1 x 20)
+  (setq y 10)
+  (setq x 20)
   (+ y x a b))    
 
 ;;uso de setq 4
