@@ -74,6 +74,9 @@ public class Parser {
             case 2:
                 System.out.println("Error: Al cerrar parentesis");
                 break;
+            case 3:
+                System.out.println("Error: Al no encontrar KEYWORDS");
+                break;
         
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
@@ -86,11 +89,7 @@ public class Parser {
 
     public void execute(ArrayList<String> tokens) {
         for(int i=0; i<tokens.size(); i++){
-            System.out.println("for mayor"+tokens.get(i));
             if(tokens.get(i).equals("(")&& globalEnviroment==true){
-                System.out.println("prueba execute");
-                System.out.println(tokens.get(i));
-                System.out.println(tokens.get(i+1));
                 globalEnviroment=false;
                 if(tokens.get(i+1).equals("defun")){
                     Defun defunNew = new Defun();
@@ -99,7 +98,6 @@ public class Parser {
                         i=i+4;
                         ArrayList<String> parametros = new ArrayList<>();
                         while(!tokens.get(i).equals(")")){
-                            System.out.println(tokens.get(i));
                             parametros.add(tokens.get(i));
                             i++;
                         }
@@ -107,8 +105,6 @@ public class Parser {
                         int contadorBrackets = 0;
                         i++;
                         while(contadorBrackets>=0){
-                            System.out.println("prueva contenido defun");
-                            System.out.println(tokens.get(i));
                             if(tokens.get(i).equals("(")){
                                 contadorBrackets++;
                             }else if(tokens.get(i).equals(")")){
@@ -126,19 +122,100 @@ public class Parser {
                         functions.add(defunNew);
                         globalEnviroment=true;
                     }
-
-                
-                
+                }else if(KEYWORDS.contains(tokens.get(i+1))){
+                    i=executeKeyWords(tokens, i);
+                }else{
+                    exitForErrorSintax(3);
                 }
             }else{
                 exitForErrorSintax(1);
             }
         }
-        for(Defun defun:functions){
-            System.out.println(defun.getNombre());
-            System.out.println(defun.getParametros());  
-            System.out.println(defun.getCuerpo());
+    }
+
+    public int executeKeyWords(ArrayList<String> tokens, int i){
+        if(i>=tokens.size()){
+            System.out.println("Error: Fin del programa");
+            System.exit(0);
+        }
+        switch (tokens.get(i + 1)) {
+            case "setq":
+                setq(tokens, i, null);
+            case "quote":
+                
+            case "cond":
+                
+            case "atom":
+            case "list":
+
+            case "equal":
+            case "<":
+            case ">":
+                i = predicates(tokens, i,null);
+            case "+":
+            case "-":
+            case "*":
+            case "/":
+        
+            default:
+                break;
+        }
+
+        return i;
+    }
+
+    public int setq(ArrayList<String> tokens, int i,ArrayList<String> variablesLocal){
+        i=i+2;
+        while(true){
+            if (tokens.get(i)==")"){
+                i++;
+                return i;
+            }else if(KEYWORDS.contains(tokens.get(i))){
+                
+            }
         }
     }
 
+    public int aritmetic(ArrayList<String> tokens, int i){
+        i=i+2;
+        while(true){
+            if (tokens.get(i)==")"){
+                i++;
+                return i;
+            }else if(KEYWORDS.contains(tokens.get(i))){
+                
+            }
+        }
+    }
+
+    public int predicates(ArrayList<String> tokens, int i,ArrayList<HashMap<String, String>> variablesLocal){
+
+        String operator = tokens.get(i + 1);
+        String value1="", value2 = "";
+        if (isNumber(tokens.get(i + 2))) {
+            value1 = tokens.get(i + 2);
+        }else if(searchInHashMaps(value1, variablesLocal)!=null){
+            value1 = searchInHashMaps(value1, variablesLocal);
+        }
+        if (isNumber(tokens.get(i + 3))) {
+            value2 = tokens.get(i + 3);
+        }else if(searchInHashMaps(value2, variablesLocal)!=null){
+            value2 = searchInHashMaps(value1, variablesLocal);
+        }
+        Predicate predicate = new Predicate();
+        System.out.println(predicate.evaluate(operator, value1, value2));
+        if(!tokens.get(i+4).equals(")"))
+            exitForErrorSintax(2);
+        i=i+5;
+        return i;
+    }
+
+    public static String searchInHashMaps(String key, ArrayList<HashMap<String, String>> hashMapList) {
+        for (HashMap<String, String> map : hashMapList) {
+            if (map.containsKey(key)) {
+                return map.get(key);
+            }
+        }
+        return null;  // No se encontró la clave en ninguno de los HashMaps
+    }
 }

@@ -3,13 +3,6 @@
   (set1 x 20)
   (+ y x a b))
 
-(defun g(n)
-  (cond
-    ((> n 0) "Positivo") 
-    ((< n 0) "Negativo")  
-    (t "Cero")))   
-
-(defun u (n)
-  (cond
-    ((<= n 1) 1)        
-    (t (* n (factorial (- n 1)))))) 
+(< 2 (+ 2 3))
+(< (- 2 6 ) (+ 2 3))
+(> x y)
