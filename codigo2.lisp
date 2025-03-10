@@ -6,12 +6,14 @@
 
 ;;uso de quote 2
 (quote (1 2 3))         
-'(a b c)       
+'(a b c)  
+
+(+ 1 2 3)
 
 ;;definicion de funciones 3
 (defun suma (a b c d f s)
   (+ a b)
-  (setq y 10)
+  (setq y (+ 1 2)))
   (setq x 20)
   (+ y x a b))    
 
@@ -25,7 +27,9 @@
 (list 1 2 3)             
 (equal 3 3)           
 (< 2 3)                  
-(> 5 4)      
+(> 5 4) 
+(+ 2 2 + ( 3 * 1))   
+
 
 ;;condicionales cond 6
 (defun es-positivo (n)

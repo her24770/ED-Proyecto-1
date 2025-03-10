@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -123,7 +124,9 @@ public class Parser {
                         globalEnviroment=true;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
-                    i=executeKeyWords(tokens, i);
+                    ArrayList<Object> parametrizacion = new ArrayList<>();
+                    parametrizacion.add(i);
+                    i = (Integer) executeKeyWords(tokens, parametrizacion).get(0);
                 }else{
                     exitForErrorSintax(3);
                 }
@@ -133,7 +136,15 @@ public class Parser {
         }
     }
 
-    public int executeKeyWords(ArrayList<String> tokens, int i){
+    public ArrayList<Object> executeKeyWords(ArrayList<String> tokens, ArrayList<Object> parametrizacion){
+        int  i=(Integer) parametrizacion.get(0);
+        //get(0) = i int
+        //get(1) = return double
+        //get(2) = return boolean
+        //get(3) = String
+        //get(4) = ArrayList(Strings)
+        //get(5) = variablesLocal
+        
         if(i>=tokens.size()){
             System.out.println("Error: Fin del programa");
             System.exit(0);
@@ -151,7 +162,7 @@ public class Parser {
             case "equal":
             case "<":
             case ">":
-                i = predicates(tokens, i,null);
+                i = (Integer) predicates(tokens, parametrizacion).get(0);
             case "+":
             case "-":
             case "*":
@@ -160,8 +171,8 @@ public class Parser {
             default:
                 break;
         }
-
-        return i;
+        parametrizacion.set(0, i);
+        return parametrizacion;
     }
 
     public int setq(ArrayList<String> tokens, int i,ArrayList<String> variablesLocal){
@@ -188,26 +199,28 @@ public class Parser {
         }
     }
 
-    public int predicates(ArrayList<String> tokens, int i,ArrayList<HashMap<String, String>> variablesLocal){
+    public ArrayList<Object> predicates(ArrayList<String> tokens, ArrayList<Object> parametrizacion){
+        int  i=(Integer) parametrizacion.get(0);
 
         String operator = tokens.get(i + 1);
         String value1="", value2 = "";
         if (isNumber(tokens.get(i + 2))) {
             value1 = tokens.get(i + 2);
-        }else if(searchInHashMaps(value1, variablesLocal)!=null){
-            value1 = searchInHashMaps(value1, variablesLocal);
-        }
+        // }else if(searchInHashMaps(value1, variablesLocal)!=null){
+        //     value1 = searchInHashMaps(value1, variablesLocal);
+         }
         if (isNumber(tokens.get(i + 3))) {
             value2 = tokens.get(i + 3);
-        }else if(searchInHashMaps(value2, variablesLocal)!=null){
-            value2 = searchInHashMaps(value1, variablesLocal);
-        }
+        // }else if(searchInHashMaps(value2, variablesLocal)!=null){
+        //     value2 = searchInHashMaps(value1, variablesLocal);
+         }
         Predicate predicate = new Predicate();
         System.out.println(predicate.evaluate(operator, value1, value2));
         if(!tokens.get(i+4).equals(")"))
             exitForErrorSintax(2);
         i=i+5;
-        return i;
+        parametrizacion.set(0, i);
+        return parametrizacion;
     }
 
     public static String searchInHashMaps(String key, ArrayList<HashMap<String, String>> hashMapList) {
