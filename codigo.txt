@@ -1,6 +1,5 @@
-(defun suma (k d v)
-  (set1 y 10)
-  (set1 x 20)
-  (+ y x a b))
+(defun suma (k)
+  (setq x 1))
 
-(< 4 3)
+( < 4 3)
+( < 2 3)

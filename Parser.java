@@ -90,6 +90,7 @@ public class Parser {
 
     public void execute(ArrayList<String> tokens) {
         for(int i=0; i<tokens.size(); i++){
+            System.out.println(tokens.get(i));
             if(tokens.get(i).equals("(")&& globalEnviroment==true){
                 globalEnviroment=false;
                 if(tokens.get(i+1).equals("defun")){
@@ -124,34 +125,36 @@ public class Parser {
                         globalEnviroment=true;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
-                    ArrayList<Object> parametrizacion = new ArrayList<>();
-                    parametrizacion.add(i);
-                    i = (Integer) executeKeyWords(tokens, parametrizacion).get(0);
+
+
+                    Counter counterGlobal = new Counter();
+                    counterGlobal.setCount(i);
+                    counterGlobal=executeKeyWords(tokens, counterGlobal);
+                    System.out.println("CounterGlobal: "+ tokens.get(counterGlobal.getCount())+counterGlobal.getCount());
+                
+                    i=counterGlobal.getCount();
                 }else{
                     exitForErrorSintax(3);
                 }
+            }else if(i>=tokens.size()){
+                System.out.println("Fin del programa");
+                System.exit(0);
+
             }else{
                 exitForErrorSintax(1);
             }
         }
     }
 
-    public ArrayList<Object> executeKeyWords(ArrayList<String> tokens, ArrayList<Object> parametrizacion){
-        int  i=(Integer) parametrizacion.get(0);
-        //get(0) = i int
-        //get(1) = return double
-        //get(2) = return boolean
-        //get(3) = String
-        //get(4) = ArrayList(Strings)
-        //get(5) = variablesLocal
+    public Counter executeKeyWords(ArrayList<String> tokens, Counter logic){
         
-        if(i>=tokens.size()){
+        if(logic.getCount()>=tokens.size()){
             System.out.println("Error: Fin del programa");
             System.exit(0);
         }
-        switch (tokens.get(i + 1)) {
+        switch (tokens.get(logic.getCount() + 1)) {
             case "setq":
-                setq(tokens, i, null);
+                setq(tokens, logic.getCount(), null);
             case "quote":
                 
             case "cond":
@@ -162,7 +165,8 @@ public class Parser {
             case "equal":
             case "<":
             case ">":
-                i = (Integer) predicates(tokens, parametrizacion).get(0);
+                logic=predicates(tokens,logic);
+                
             case "+":
             case "-":
             case "*":
@@ -171,8 +175,7 @@ public class Parser {
             default:
                 break;
         }
-        parametrizacion.set(0, i);
-        return parametrizacion;
+        return logic;
     }
 
     public int setq(ArrayList<String> tokens, int i,ArrayList<String> variablesLocal){
@@ -199,28 +202,30 @@ public class Parser {
         }
     }
 
-    public ArrayList<Object> predicates(ArrayList<String> tokens, ArrayList<Object> parametrizacion){
-        int  i=(Integer) parametrizacion.get(0);
+    public Counter predicates(ArrayList<String> tokens, Counter logic){
 
-        String operator = tokens.get(i + 1);
+        String operator = tokens.get(logic.getCount() + 1);
         String value1="", value2 = "";
-        if (isNumber(tokens.get(i + 2))) {
-            value1 = tokens.get(i + 2);
+        if (isNumber(tokens.get(logic.getCount() + 2))) {
+            value1 = tokens.get(logic.getCount() + 2);
         // }else if(searchInHashMaps(value1, variablesLocal)!=null){
         //     value1 = searchInHashMaps(value1, variablesLocal);
          }
-        if (isNumber(tokens.get(i + 3))) {
-            value2 = tokens.get(i + 3);
+        if (isNumber(tokens.get(logic.getCount() + 3))) {
+            value2 = tokens.get(logic.getCount() + 3);
         // }else if(searchInHashMaps(value2, variablesLocal)!=null){
         //     value2 = searchInHashMaps(value1, variablesLocal);
          }
         Predicate predicate = new Predicate();
         System.out.println(predicate.evaluate(operator, value1, value2));
-        if(!tokens.get(i+4).equals(")"))
+        if(!tokens.get(logic.getCount()+4).equals(")"))
             exitForErrorSintax(2);
-        i=i+5;
-        parametrizacion.set(0, i);
-        return parametrizacion;
+
+        System.out.println("eee");
+        System.out.println(logic.getCount()); 
+        logic.increment(5);
+        System.out.println(logic.getCount());
+        return logic;
     }
 
     public static String searchInHashMaps(String key, ArrayList<HashMap<String, String>> hashMapList) {
