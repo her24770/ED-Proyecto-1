@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -90,7 +89,7 @@ public class Parser {
 
     public void execute(ArrayList<String> tokens) {
         for(int i=0; i<tokens.size(); i++){
-            System.out.println(tokens.get(i));
+            
             if(tokens.get(i).equals("(")&& globalEnviroment==true){
                 globalEnviroment=false;
                 if(tokens.get(i+1).equals("defun")){
@@ -126,13 +125,12 @@ public class Parser {
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
 
-
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
                     counterGlobal=executeKeyWords(tokens, counterGlobal);
-                    System.out.println("CounterGlobal: "+ tokens.get(counterGlobal.getCount())+counterGlobal.getCount());
                 
                     i=counterGlobal.getCount();
+                    globalEnviroment=true;
                 }else{
                     exitForErrorSintax(3);
                 }
@@ -166,6 +164,7 @@ public class Parser {
             case "<":
             case ">":
                 logic=predicates(tokens,logic);
+                
                 
             case "+":
             case "-":
@@ -203,7 +202,6 @@ public class Parser {
     }
 
     public Counter predicates(ArrayList<String> tokens, Counter logic){
-
         String operator = tokens.get(logic.getCount() + 1);
         String value1="", value2 = "";
         if (isNumber(tokens.get(logic.getCount() + 2))) {
@@ -220,11 +218,8 @@ public class Parser {
         System.out.println(predicate.evaluate(operator, value1, value2));
         if(!tokens.get(logic.getCount()+4).equals(")"))
             exitForErrorSintax(2);
-
-        System.out.println("eee");
-        System.out.println(logic.getCount()); 
-        logic.increment(5);
-        System.out.println(logic.getCount());
+        
+        logic.increment(4);
         return logic;
     }
 
