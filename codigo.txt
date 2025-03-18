@@ -3,3 +3,12 @@
 
 ( < 4 3)
 ( > 4 3)
+
+(quote (defun suma (k)
+  (setq x 1)))
+
+(quote ( ( < 4 3 ) ))
+(quote ( > 4 3))
+
+( < 4 3)
+( > 4 3)

@@ -127,8 +127,7 @@ public class Parser {
 
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
-                    counterGlobal=executeKeyWords(tokens, counterGlobal);
-                
+                    counterGlobal=executeKeyWords(tokens, counterGlobal);                
                     i=counterGlobal.getCount();
                     globalEnviroment=true;
                 }else{
@@ -153,7 +152,12 @@ public class Parser {
         switch (tokens.get(logic.getCount() + 1)) {
             case "setq":
                 setq(tokens, logic.getCount(), null);
+                break;
+                
             case "quote":
+
+                logic = quote(tokens, logic);
+                break;
                 
             case "cond":
                 
@@ -164,6 +168,7 @@ public class Parser {
             case "<":
             case ">":
                 logic=predicates(tokens,logic);
+                break;
                 
                 
             case "+":
@@ -187,6 +192,44 @@ public class Parser {
                 
             }
         }
+    }
+
+    public Counter quote(ArrayList<String> tokens, Counter logic) {
+        StringBuilder quoteBodyBuilder = new StringBuilder();
+        int i = logic.getCount() + 2; 
+    
+        if (i < tokens.size() && tokens.get(i).equals("(")) {
+            int parentesisHandler = 1;
+
+            quoteBodyBuilder.append(tokens.get(i)).append(" ");
+            i++;
+            
+            while (i < tokens.size() && parentesisHandler > 0) {
+                String token = tokens.get(i);
+                if (token.equals("(")){
+                    parentesisHandler++;
+                }
+                
+                    
+                else if (token.equals(")")){
+                
+                    parentesisHandler--;
+                }
+                
+                quoteBodyBuilder.append(token).append(" ");
+                i++;
+
+            }
+            
+        } else {
+            System.out.println("Error: quote sin argumento");
+            
+        }
+
+        System.out.println("\nQUOTE: " + quoteBodyBuilder.toString() + "");
+        logic.increment(i - logic.getCount());
+
+        return logic;
     }
 
     public int aritmetic(ArrayList<String> tokens, int i){
@@ -215,7 +258,7 @@ public class Parser {
         //     value2 = searchInHashMaps(value1, variablesLocal);
          }
         Predicate predicate = new Predicate();
-        System.out.println(predicate.evaluate(operator, value1, value2));
+        System.out.println("\nPREDICATE: "+ predicate.evaluate(operator, value1, value2));
         if(!tokens.get(logic.getCount()+4).equals(")"))
             exitForErrorSintax(2);
         
