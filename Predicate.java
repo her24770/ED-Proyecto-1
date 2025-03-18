@@ -1,16 +1,38 @@
+import java.util.List;
+
 public class Predicate {
 
-    public boolean evaluate(String operator,String value1, String value2) {
+    public boolean evaluate(String operator, List<String> values) {
         switch (operator) {
             case "equal":
-                return value1.equals(value2);
+                // Verifica si todos los valores son iguales
+                for (int i = 1; i < values.size(); i++) {
+                    if (!values.get(i).equals(values.get(0))) {
+                        return false;
+                    }
+                }
+                return true;
+
             case "<":
-                return Double.parseDouble(value1) < Integer.parseInt(value2);
+                // Verifica si los valores están en orden estrictamente creciente
+                for (int i = 1; i < values.size(); i++) {
+                    if (Double.parseDouble(values.get(i - 1)) >= Double.parseDouble(values.get(i))) {
+                        return false;
+                    }
+                }
+                return true;
+
             case ">":
-                return Integer.parseInt(value1) > Integer.parseInt(value2);
+                // Verifica si los valores están en orden estrictamente decreciente
+                for (int i = 1; i < values.size(); i++) {
+                    if (Double.parseDouble(values.get(i - 1)) <= Double.parseDouble(values.get(i))) {
+                        return false;
+                    }
+                }
+                return true;
+
             default:
                 return false;
         }
     }
-    
 }

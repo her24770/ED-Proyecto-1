@@ -201,25 +201,37 @@ public class Parser {
         }
     }
 
-    public Counter predicates(ArrayList<String> tokens, Counter logic){
+    public Counter predicates(ArrayList<String> tokens, Counter logic) {
         String operator = tokens.get(logic.getCount() + 1);
-        String value1="", value2 = "";
-        if (isNumber(tokens.get(logic.getCount() + 2))) {
-            value1 = tokens.get(logic.getCount() + 2);
-        // }else if(searchInHashMaps(value1, variablesLocal)!=null){
-        //     value1 = searchInHashMaps(value1, variablesLocal);
-         }
-        if (isNumber(tokens.get(logic.getCount() + 3))) {
-            value2 = tokens.get(logic.getCount() + 3);
-        // }else if(searchInHashMaps(value2, variablesLocal)!=null){
-        //     value2 = searchInHashMaps(value1, variablesLocal);
-         }
+        List<String> values = new ArrayList<>();
+
+        // Recopilar todos los valores hasta encontrar ")"
+        int i = logic.getCount() + 2;
+        while (i < tokens.size() && !tokens.get(i).equals(")")) {
+            if (isNumber(tokens.get(i))) {
+                values.add(tokens.get(i));
+            }
+            i++;
+        }
+
+        // Verificar si se encontró el cierre ")"
+        if (i >= tokens.size() || !tokens.get(i).equals(")")) {
+            exitForErrorSintax(2); // Manejo de error sintáctico
+        }
+
+        // Evaluar los valores con el operador
         Predicate predicate = new Predicate();
-        System.out.println(predicate.evaluate(operator, value1, value2));
-        if(!tokens.get(logic.getCount()+4).equals(")"))
-            exitForErrorSintax(2);
+        boolean result = predicate.evaluate(operator, values);
+        System.out.println(result);
+        // Actualizar el contador
+        logic.increment(i - logic.getCount());
+        return logic;
+    }
+
+    public Counter setq(ArrayList<String> tokens, Counter logic){
+
+
         
-        logic.increment(4);
         return logic;
     }
 
