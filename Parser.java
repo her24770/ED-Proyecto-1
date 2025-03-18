@@ -244,6 +244,8 @@ public class Parser {
         while (i < tokens.size() && !tokens.get(i).equals(")")) {
             if (isNumber(tokens.get(i))) {
                 values.add(tokens.get(i));
+            }else if(variables.getValue(tokens.get(i))!=null){
+                values.add(variables.getValue(tokens.get(i)));
             }
             i++;
         }
@@ -272,11 +274,17 @@ public class Parser {
             i++;
     
             if (i >= tokens.size()) {
-                exitForErrorSintax(2); // Error si no hay valor para la variable
+                exitForErrorSintax(4); // Error si no hay valor para la variable
             }
-    
+            
             String value = tokens.get(i); // Valor de la variable
             i++;
+            
+            //validar que no sea variables o funcion
+            if(variables.getValue(value)!=null){
+                value=variables.getValue(value);
+            }
+
     
             // Asignar la variable y su valor
             if(globalEnviroment){
@@ -286,7 +294,7 @@ public class Parser {
     
         // Verificar el cierre ")"
         if (i >= tokens.size() || !tokens.get(i).equals(")")) {
-            exitForErrorSintax(2); // Manejo de error sintáctico
+            exitForErrorSintax(4); // Manejo de error sintáctico
         }
     
         // Actualizar el contador
