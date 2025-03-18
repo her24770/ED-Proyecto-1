@@ -2,4 +2,7 @@
   (setq x 1))
 
 ( < 4 3)
-( > 4 3)
+( equal 4 4)
+(setq x 1 y 2)
+
+(setq x 4 m 2)
