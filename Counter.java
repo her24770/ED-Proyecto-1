@@ -1,9 +1,17 @@
 public class Counter{
     private int count = 0;
     private String value;
-    
+    private String arithmeticValue;
 
     
+
+    public void setArithmeticValue(double arithmeticValue) {
+        this.arithmeticValue = String.valueOf(arithmeticValue);
+    }
+
+    public String getArithmeticValue() {
+        return arithmeticValue;
+    }
 
     public Counter() {
         count = 0;
