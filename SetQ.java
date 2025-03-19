@@ -1,31 +1,26 @@
 import java.util.HashMap;
 
-public class SetQ<T> {
-    private HashMap<String, T> variables;
+public class SetQ {
+    private HashMap<String, String> variables;
 
-    // Constructor
     public SetQ() {
         this.variables = new HashMap<>();
     }
 
-    // Método para asignar un valor a una variable
-    public void setNombre(String nombre, T valor) {
-        variables.put(nombre, valor);
+    // Método para asignar valores a las variables
+    public void assign(String variable, String value) {
+        variables.put(variable, value);
     }
 
     // Método para obtener el valor de una variable
-    public T getNombre(String nombre) {
-        return variables.get(nombre);
+    public String getValue(String variable) {
+        return variables.get(variable);
     }
 
-    // Método para obtener el mapa completo de variables
-    public HashMap<String, T> getVariables() {
-        return variables;
+    // Método para imprimir todas las variables (opcional, para debugging)
+    public void printVariables() {
+        for (String key : variables.keySet()) {
+            System.out.println(key + " = " + variables.get(key));
+        }
     }
-
-    // Método para establecer el mapa completo de variables
-    public void setVariables(HashMap<String, T> variables) {
-        this.variables = variables;
-    }
-
 }

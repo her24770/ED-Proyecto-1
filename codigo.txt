@@ -1,6 +1,7 @@
 (defun suma (k)
   (setq x 1))
 
+<<<<<<< HEAD
 ( < 4 3)
 ( > 4 3)
 (+ 5 2 3)

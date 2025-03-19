@@ -15,7 +15,7 @@ public class Parser {
 
     ArrayList<String> tokens = new ArrayList<>();
     ArrayList<Defun> functions = new ArrayList<>();
-    ArrayList<HashMap> variables = new ArrayList<>();
+    SetQ variables = new SetQ();
 
 
     
@@ -77,6 +77,9 @@ public class Parser {
             case 3:
                 System.out.println("Error: Al no encontrar KEYWORDS");
                 break;
+            case 4:
+                System.out.println("Error: Al declarar variables");
+                break;
         
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
@@ -124,12 +127,12 @@ public class Parser {
                         globalEnviroment=true;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
-
+                    globalEnviroment=true;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
                     counterGlobal=executeKeyWords(tokens, counterGlobal);                
                     i=counterGlobal.getCount();
-                    globalEnviroment=true;
+                    
                 }else{
                     exitForErrorSintax(3);
                 }
@@ -151,7 +154,7 @@ public class Parser {
         }
         switch (tokens.get(logic.getCount() + 1)) {
             case "setq":
-                setq(tokens, logic.getCount(), null);
+                logic =setq(tokens, logic);
                 break;
                 
             case "quote":
@@ -182,18 +185,6 @@ public class Parser {
                 break;
         }
         return logic;
-    }
-
-    public int setq(ArrayList<String> tokens, int i,ArrayList<String> variablesLocal){
-        i=i+2;
-        while(true){
-            if (tokens.get(i)==")"){
-                i++;
-                return i;
-            }else if(KEYWORDS.contains(tokens.get(i))){
-                
-            }
-        }
     }
 
     public Counter quote(ArrayList<String> tokens, Counter logic) {
@@ -296,6 +287,8 @@ public class Parser {
         while (i < tokens.size() && !tokens.get(i).equals(")")) {
             if (isNumber(tokens.get(i))) {
                 values.add(tokens.get(i));
+            }else if(variables.getValue(tokens.get(i))!=null){
+                values.add(variables.getValue(tokens.get(i)));
             }
             i++;
         }
@@ -314,19 +307,45 @@ public class Parser {
         return logic;
     }
 
-    public Counter setq(ArrayList<String> tokens, Counter logic){
+    public Counter setq(ArrayList<String> tokens, Counter logic) {
+        // Verificar que el primer token después de "setq" sea una variable
+        int i = logic.getCount() + 2;
+    
+        // Procesar pares de variables y valores
+        while (i < tokens.size() && !tokens.get(i).equals(")")) {
+            String variable = tokens.get(i); // Nombre de la variable
+            i++;
+    
+            if (i >= tokens.size()) {
+                exitForErrorSintax(4); // Error si no hay valor para la variable
+            }
+            
+            String value = tokens.get(i); // Valor de la variable
+            i++;
+            
+            //validar que no sea variables o funcion
+            if(variables.getValue(value)!=null){
+                value=variables.getValue(value);
+            }
 
-
-        
-        return logic;
-    }
-
-    public static String searchInHashMaps(String key, ArrayList<HashMap<String, String>> hashMapList) {
-        for (HashMap<String, String> map : hashMapList) {
-            if (map.containsKey(key)) {
-                return map.get(key);
+    
+            // Asignar la variable y su valor
+            if(globalEnviroment){
+                variables.assign(variable, value);
             }
         }
-        return null;  // No se encontró la clave en ninguno de los HashMaps
+    
+        // Verificar el cierre ")"
+        if (i >= tokens.size() || !tokens.get(i).equals(")")) {
+            exitForErrorSintax(4); // Manejo de error sintáctico
+        }
+    
+        // Actualizar el contador
+        logic.increment(i - logic.getCount());
+    
+        // Opcional: Imprimir las variables para debugging
+        variables.printVariables();
+    
+        return logic;
     }
 }
