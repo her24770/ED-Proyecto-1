@@ -179,7 +179,7 @@ public class Parser {
             case "*":
             case "/":
                 logic=arithmeticOperation(tokens, logic);
-                System.out.println(logic.getArithmeticValue());
+                System.out.println(logic.getValue());
                 break;
         
             default:
@@ -252,7 +252,7 @@ public class Parser {
             else if(tokens.get(i).equals("(")){
                 Counter counter = new Counter();
                 counter.setCount(i);
-                values.add(String.valueOf(arithmeticOperation(tokens, counter).getArithmeticValue()));
+                values.add(String.valueOf(arithmeticOperation(tokens, counter).getValue()));
                 i=counter.getCount()+1;
             }
             else if (variables.getValue(tokens.get(i))!=null){
@@ -277,7 +277,7 @@ public class Parser {
 
         // Actualizar el contador
         logic.increment(i - logic.getCount());
-        logic.setArithmeticValue(result);
+        logic.setValue(result.toString());
         return logic;
     }
 
