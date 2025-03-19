@@ -179,6 +179,7 @@ public class Parser {
             case "*":
             case "/":
                 logic=arithmeticOperation(tokens, logic);
+                System.out.println(logic.getArithmeticValue());
                 break;
         
             default:
@@ -254,10 +255,13 @@ public class Parser {
                 values.add(String.valueOf(arithmeticOperation(tokens, counter).getArithmeticValue()));
                 i=counter.getCount()+1;
             }
-            // else if (variables.contains(tokens.get(i))){
-            //     values.add(searchInHashMaps(tokens.get(i), variables));
-            //     i++;
-            // }
+            else if (variables.getValue(tokens.get(i))!=null){
+                values.add(variables.getValue(tokens.get(i)));
+                i++;
+            }
+            else{
+                exitForErrorSintax(3); // Manejo de error sintáctico
+            }
             
         }
 
@@ -269,7 +273,7 @@ public class Parser {
         // Evaluar los valores con el operador
         Calculator calculator = new Calculator();
         Double result = calculator.operation(operator, values);
-        System.out.println(result);
+        // System.out.println(result);
 
         // Actualizar el contador
         logic.increment(i - logic.getCount());
