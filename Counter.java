@@ -1,9 +1,16 @@
 public class Counter{
     private int count = 0;
     private String value;
+    private boolean valueBool;
     
 
-    
+    public boolean isValueBool() {
+        return valueBool;
+    }
+
+    public void setValueBool(boolean valueBool) {
+        this.valueBool = valueBool;
+    }
 
     public Counter() {
         count = 0;

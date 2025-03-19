@@ -258,7 +258,7 @@ public class Parser {
         // Evaluar los valores con el operador
         Predicate predicate = new Predicate();
         boolean result = predicate.evaluate(operator, values);
-        System.out.println(result);
+        logic.setValueBool(result);
         // Actualizar el contador
         logic.increment(i - logic.getCount());
         return logic;
