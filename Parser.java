@@ -178,6 +178,9 @@ public class Parser {
             case "-":
             case "*":
             case "/":
+                logic=arithmeticOperation(tokens, logic);
+                System.out.println(logic.getArithmeticValue());
+                break;
         
             default:
                 break;
@@ -234,6 +237,50 @@ public class Parser {
             }
         }
     }
+
+    public Counter arithmeticOperation(ArrayList<String> tokens, Counter logic) {
+        String operator = tokens.get(logic.getCount() + 1);
+        List<String> values = new ArrayList<>();
+
+        // Recopilar todos los valores hasta encontrar ")"
+        int i = logic.getCount() + 2;
+        while (i < tokens.size() && !tokens.get(i).equals(")")) {
+            if (isNumber(tokens.get(i))) {
+                values.add(tokens.get(i));
+                i++;
+            }
+            else if(tokens.get(i).equals("(")){
+                Counter counter = new Counter();
+                counter.setCount(i);
+                values.add(String.valueOf(arithmeticOperation(tokens, counter).getArithmeticValue()));
+                i=counter.getCount()+1;
+            }
+            else if (variables.getValue(tokens.get(i))!=null){
+                values.add(variables.getValue(tokens.get(i)));
+                i++;
+            }
+            else{
+                exitForErrorSintax(3); // Manejo de error sintáctico
+            }
+            
+        }
+
+        // Verificar si se encontró el cierre ")"
+        if (i >= tokens.size() || !tokens.get(i).equals(")")) {
+            exitForErrorSintax(2); // Manejo de error sintáctico
+        }
+
+        // Evaluar los valores con el operador
+        Calculator calculator = new Calculator();
+        Double result = calculator.operation(operator, values);
+        // System.out.println(result);
+
+        // Actualizar el contador
+        logic.increment(i - logic.getCount());
+        logic.setArithmeticValue(result);
+        return logic;
+    }
+
 
     public Counter predicates(ArrayList<String> tokens, Counter logic) {
         String operator = tokens.get(logic.getCount() + 1);
