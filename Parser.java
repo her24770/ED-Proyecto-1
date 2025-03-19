@@ -79,8 +79,14 @@ public class Parser {
                 break;
             case 4:
                 System.out.println("Error: Al declarar variables");
+                break;  
+            case 5:
+                System.out.println("Error: Al no encontrar valores para operar");
                 break;
-        
+            case 6:
+                System.out.println("Error: Division sobre cero");
+                break;
+
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
                 break;
@@ -163,6 +169,8 @@ public class Parser {
                 break;
                 
             case "cond":
+                // logic = cond(tokens, logic);
+                break;
                 
             case "atom":
             case "list":
@@ -180,6 +188,7 @@ public class Parser {
             case "/":
                 logic=arithmeticOperation(tokens, logic);
                 System.out.println(logic.getValue());
+                System.out.println(tokens.get(logic.getCount()));
                 break;
         
             default:
@@ -292,8 +301,8 @@ public class Parser {
                 values.add(variables.getValue(tokens.get(i)));
                 i++;
             }
-            else{
-                exitForErrorSintax(3); // Manejo de error sintáctico
+            else if(!tokens.get(i).equals(")")){
+                exitForErrorSintax(5); // Manejo de error sintáctico
             }
             
         }
@@ -306,7 +315,7 @@ public class Parser {
         // Evaluar los valores con el operador
         Calculator calculator = new Calculator();
         Double result = calculator.operation(operator, values);
-        // System.out.println(result);
+        // System.out.println(result); 
 
         // Actualizar el contador
         logic.increment(i - logic.getCount());
@@ -339,12 +348,14 @@ public class Parser {
         Predicate predicate = new Predicate();
         boolean result = predicate.evaluate(operator, values);
         logic.setValueBool(result);
+        System.out.println(result);
         // Actualizar el contador
         logic.increment(i - logic.getCount());
         return logic;
     }
 
     public Counter setq(ArrayList<String> tokens, Counter logic) {
+                String value = "";
         // Verificar que el primer token después de "setq" sea una variable
         int i = logic.getCount() + 2;
     
@@ -357,20 +368,39 @@ public class Parser {
                 exitForErrorSintax(4); // Error si no hay valor para la variable
             }
             
-            String value = tokens.get(i); // Valor de la variable
-            i++;
-            
-            //validar que no sea variables o funcion
-            if(variables.getValue(value)!=null){
-                value=variables.getValue(value);
-            }
+                // if (tokens.get(i).equals("(")) {
+                //     i = i+1;
 
+                //     switch(tokens.get(i)){
+                //         case "/":
+                //         case "*":
+                //         case "+":
+                //         case "-":
+                //             logic.setCount(i-1);
+                //             logic=arithmeticOperation(tokens, logic);
+                //             value = logic.getValue();
+                //             variables.assign(variable, value);
+                //             i = logic.getCount()-1;
+                //             break;
+                //     }
+
+                
+            //else
+            if(variables.getValue(value)!=null){
+                    value=variables.getValue(value);
+                }
+            else{
+                value = tokens.get(i); // Valor de la variable
+                i++;
+            }
+            
     
             // Asignar la variable y su valor
             if(globalEnviroment){
                 variables.assign(variable, value);
             }
         }
+        
     
         // Verificar el cierre ")"
         if (i >= tokens.size() || !tokens.get(i).equals(")")) {
@@ -385,4 +415,8 @@ public class Parser {
     
         return logic;
     }
+
+    // public Counter Cond(){
+
+    // }
 }

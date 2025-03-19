@@ -2,15 +2,19 @@ import java.util.List;
 
 public class Calculator {
 
-    // Constructor privado para evitar instanciación externa
-    public Calculator() {
-        
-    }
-
-    // Método de operación genérica
+    
+    /**
+     * Realiza la operacion matematica dentro de la lista de valores
+     * @param operator operador matematico
+     * @param values lista de valores
+     * @return resultado de la operacion
+     */
     public double operation(String operator, List<String> values) {
         if (values.isEmpty()) {
-            throw new IllegalArgumentException("No se encontraron valores para operar.");
+            Parser.exitForErrorSintax(5);
+        }
+        else if(values.size() < 2){
+            Parser.exitForErrorSintax(5);
         }
         
         //primer valor de la operacion
@@ -31,12 +35,12 @@ public class Calculator {
                     break;
                 case "/":
                     if (current == 0) {
-                        throw new ArithmeticException("Division sobre cero.");
+                        Parser.exitForErrorSintax(6);;
                     }
                     value /= current;
                     break;
                 default:
-                    throw new IllegalArgumentException("No se reconoce: " + operator);
+                    Parser.exitForErrorSintax(3);
             }
         }
     
