@@ -97,6 +97,7 @@ public class Parser {
     }
 
     int globalEnviroment = 0;
+    int depth = 0;
 
     public void execute(ArrayList<String> tokens) {
         for(int i=0; i<tokens.size(); i++){
@@ -133,6 +134,7 @@ public class Parser {
                         globalEnviroment=0;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
+                    depth++;
                     globalEnviroment=0;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
@@ -192,12 +194,17 @@ public class Parser {
                 case "quote":
 
                     logic = quote(tokens, logic);
+                    depth--;
                     break;
                     
                 case "cond":
                     
                 case "atom":
+                    logic = atom(tokens, logic);
+                    break;
                 case "list":
+                    logic = list(tokens, logic);
+                    break;
 
                 case "equal":
                 case "<":
@@ -244,50 +251,63 @@ public class Parser {
             System.out.println("Error: quote sin argumento");    
         }
         quote.setExpresion(quoteBodyBuilder);
-        System.out.print(quote.toString());
+        logic.setValue(quote.toAtom());
+        if (depth == 1) {
+            System.out.println(quote.toString());
+        }
+
+        if (depth == 0) {
+            System.out.println(quote.toAtom());
+        }
         logic.increment(i - logic.getCount());
         return logic;
     }
 
-    public Counter atom(ArrayList<String> tokens, Counter logic, int opcion) {
-        int i = logic.getCount() + 2; 
-        Quote quote = new Quote();
-        
-        if (i < tokens.size() && (tokens.get(i).equals("quote") || tokens.get(i).equals("'"))) {
-            i++; 
+    public Counter atom(ArrayList<String> tokens, Counter logic) {
+        int i = logic.getCount() + 2;  
+        Counter result = new Counter();
+        Quote atom = new Quote();
+        StringBuilder atomContent = new StringBuilder();
+
+
+        // encentra un parentesis abierto
+        if (tokens.get(i).equals("(")) {
+            depth++;
+            result.setCount(i);
+            result = executeKeyWords(tokens, result);
+            atomContent.append(result.getValue());
         }
         
-        StringBuilder quoteBody = new StringBuilder();
-        int parentesisHandler = 0;
-    
-        if (tokens.get(i).equals("(")) {
-            parentesisHandler = 1;
-            quoteBody.append(tokens.get(i)).append(" ");
-            i++;
-    
-            if (KEYWORDS.contains(tokens.get(i))) {
-                logic.setCount(i);
-                logic = executeKeyWords(tokens, logic);
-                String value = logic.getValue();
-                quoteBody.append(value).append(" ");
-                System.out.println("Valor: "+value);
-            }
-    
-            while (parentesisHandler > 0 && i < tokens.size()) {
-                String token = tokens.get(i);
-    
-                if (token.equals("(")) {
-                    parentesisHandler++;
-                } else if (token.equals(")")) {
-                    parentesisHandler--;
-                }
-                quoteBody.append(token).append(" ");
-                i++;
-            }
-        }  
-        quote.setExpresion(quoteBody);
-        System.out.print(quote.isAtom());
-        logic.increment(i - logic.getCount());
+        // si coincide con varialbles
+        else if (variables.getValue(tokens.get(i)) != null) {
+            atomContent.append(variables.getValue(tokens.get(i)));
+            result.setCount(i);
+            
+        // si es un número
+        } else if (isNumber(tokens.get(i)) || variables.getValue(tokens.get(i)) != null) {
+            
+            atomContent.append(tokens.get(i));
+            result.setCount(i); 
+        // cualquier otro caso
+        } else {
+            
+            atomContent.append(tokens.get(i));
+            result.setCount(i);
+        } 
+
+        // Verificar si el contenido es un átomo y retornar el resultado
+        
+        atom.setExpresion(atomContent);
+        System.out.println(atom.isAtom());
+        logic.setCount(result.getCount() + 1);
+        depth--;
+        return logic;
+
+    }
+
+    public Counter list (ArrayList<String> tokens, Counter logic){
+        depth--;
+        quote(tokens, logic);
         return logic;
     }
 

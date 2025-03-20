@@ -19,19 +19,15 @@ public class Quote {
     public boolean isAtom() {
         String exp = expresion.toString().trim();
     
-        // Verificar si es una lista válida con paréntesis
-        if (exp.startsWith("(") && exp.endsWith(")")) {
-            // Eliminar los paréntesis
+        // Remover TODOS los paréntesis externos 
+        while (exp.startsWith("(") && exp.endsWith(")")) {
             exp = exp.substring(1, exp.length() - 1).trim();
-    
-            // Verificar si contiene un solo elemento
-            String[] elements = exp.split("\\s+"); // Divide por espacios
-    
-            return elements.length == 1 && !elements[0].startsWith("(");
         }
-        
-        // Si no es una lista, ya es un átomo
-        return true;
+    
+        // Verificar si luego de quitar paréntesis queda un solo elemento y no es una lista
+        String[] elements = exp.split("\\s+"); // Divide por espacios
+    
+        return elements.length == 1 && !elements[0].startsWith("(");
     }
     
 
@@ -42,4 +38,10 @@ public class Quote {
     public String toString() {
         return "'" + expresion;  // El prefijo ' indica que es una expresión QUOTE
     }
+
+    public String toAtom(){
+        return "" + expresion;
+    }
+
+
 }
