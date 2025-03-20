@@ -1,9 +1,12 @@
-(setq x 1 y x)
+(setq x 1 y 2)
 
-(defun suma (x y)
-(+ 2 y)
-  (+ x y 2 3)
-  (+ x 3)
+
+(defun sumas (x y)
+  (+ 5 2)
   )
 
-(setq w (suma  2 2))
+  (defun resta (x y)
+  (- x 1)
+  )
+
+(setq x (+ 2 2 3))

@@ -7,9 +7,16 @@ public class Predicate {
             case "equal":
                 // Verifica si todos los valores son iguales
                 for (int i = 1; i < values.size(); i++) {
-                    if (!values.get(i).equals(values.get(0))) {
-                        return false;
+                    if(isNumber(values.get(i))&&isNumber(values.get(0))){
+                        if(Double.parseDouble(values.get(i))!=Double.parseDouble(values.get(0))){
+                            return false;
+                        }
+                    }else{
+                        if (!values.get(i).equals(values.get(0))) {
+                            return false;
+                        }
                     }
+                    
                 }
                 return true;
 
@@ -33,6 +40,19 @@ public class Predicate {
 
             default:
                 return false;
+        }
+    }
+
+    //funcion para verificar si es un numero
+    public static boolean isNumber(String input) {
+        if (input == null || input.isEmpty()) {
+            return false;
+        }
+        try {
+            Double.parseDouble(input);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 }

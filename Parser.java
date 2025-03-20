@@ -1,5 +1,4 @@
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -146,7 +145,7 @@ public class Parser {
                 exitForErrorSintax(7);
 
             }else{
-                exitForErrorSintax(1);
+                exitForErrorSintax(1); 
             }
         }
     }
@@ -179,8 +178,9 @@ public class Parser {
                 exitForErrorSintax(6);
             }            
             // Avanzamos el contador para saltar el paréntesis de cierre
-            Counter counterDefun = new Counter();
-            logic = defun(defunRun, counterDefun,parametrosSend);
+            
+            logic = defun(defunRun, logic,parametrosSend);
+            
             System.out.println("funcion finalizada");
             
         }else{
@@ -347,9 +347,16 @@ public class Parser {
             }else if(variables.getValue(tokens.get(logic.getCount() ))!=null){
                 values.add(variables.getValue(tokens.get(logic.getCount() )));
             }else if(tokens.get(logic.getCount() ).equals("(")){
-                logic = executeKeyWords(tokens, logic);
+                Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
+                if (defunsearch!=null){
+                    logic.increment(1);
+                    logic = executeKeyWords(tokens, logic);
+                }else{
+                    logic = executeKeyWords(tokens, logic);
+                }
                 values.add(logic.getValue());
             }
+            
             logic.increment(1);;
         }
 
@@ -384,26 +391,25 @@ public class Parser {
             
              //validar que no sea variables o funcion
              
-             if (tokens.get(logic.getCount()).equals("(")) {
+            if (tokens.get(logic.getCount()).equals("(")) {
                  Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
-                
-                 if (defunsearch!=null){
+                if(KEYWORDS.contains(tokens.get(logic.getCount()+1))){
+                     logic = executeKeyWords(tokens, logic);
+                     value=logic.getValue();
+                 }else if (defunsearch!=null){
                      logic.increment(1);
                      logic = executeKeyWords(tokens, logic);
                      value=logic.getValue();
                  }
                 
-             }
+            }
 
             //validar variables
             if(variables.getValue(value)!=null){
                 value=variables.getValue(value);
             }
 
-            
-            logic.increment(1);;
-
-    
+            logic.increment(1);;    
             // Asignar la variable y su valor
             if(globalEnviroment==0){
                 variables.assign(variable, value);
@@ -431,29 +437,29 @@ public class Parser {
         return null;
     }
 
-    public Counter defun(Defun defunRun, Counter logicD, ArrayList<String> parametros){
+    public Counter defun(Defun defunRun, Counter logic, ArrayList<String> parametros){
         globalEnviroment++; 
+        Counter logicD = new Counter();
         ArrayList<String> tokensD = defunRun.getCuerpo();
         //aregar parametros como variables locles
         for(int j=0; j<parametros.size(); j++){
             defunRun.addVariable(defunRun.getParametros().get(j),parametros.get(j));
         }
         System.out.println("funcion interns");
+        System.out.println(logicD.getCount());
         while(logicD.getCount()<tokensD.size()){
-            System.out.println(tokensD.get(logicD.getCount()));
-            System.out.println(logicD.getCount());
             //manejar funcion interna
             if (!tokensD.get(logicD.getCount()).equals("(")){
                 exitForErrorSintax(1);
             }else if(KEYWORDS.contains(tokensD.get(logicD.getCount()+1))){
-                System.out.println("aaaaa");
-                System.out.println(tokensD.get(logicD.getCount())+" "+tokensD.get(logicD.getCount()));
                 logicD=executeKeyWords(tokensD, logicD);  
+                System.out.println("valor: "+logicD.getCount());
                 logicD.increment(1);
             }
         }
+        logic.setValue(logicD.getValue());
         globalEnviroment--; 
-        return logicD;
+        return logic;
 
     } 
     
