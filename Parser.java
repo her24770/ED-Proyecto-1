@@ -82,6 +82,9 @@ public class Parser {
             case 5:
                 System.out.println("Error: Al no encontrar valores para operar");
                 break;
+            case 6: 
+                System.out.println("Error: Numero de parametros incorrecto");
+                break;
         
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
@@ -153,7 +156,7 @@ public class Parser {
             System.exit(0);
         }
         if (searchDefun(functions, tokens.get(logic.getCount()))!=null){
-            System.out.println("Encontrado defun");
+            
             
             // ArrayList para guardar los parámetros
             ArrayList<String> parametrosSend = new ArrayList<>();
@@ -170,18 +173,17 @@ public class Parser {
                 logic.increment(1);
             }
 
-
+            System.out.println("Lista de parametros");
             for (int i = 0; i < parametrosSend.size(); i++) {
                 System.out.println(parametrosSend.get(i));
             }
             //error en caso de numero invalido de parametros
             if(parametrosSend.size()!=defunRun.getParametros().size()){
-                exitForErrorSintax(5);
-            }
-            
+                exitForErrorSintax(6);
+            }            
             // Avanzamos el contador para saltar el paréntesis de cierre
-            Counter counterDefun = new Counter();
-            logic=defun(defunRun, counterDefun,parametrosSend);
+            //Counter counterDefun = new Counter();
+            //logic=defun(defunRun, counterDefun,parametrosSend);
             
         }else{
             switch (tokens.get(logic.getCount() + 1)) {
@@ -382,17 +384,19 @@ public class Parser {
             
             String value = tokens.get(logic.getCount()); // Valor de la variable
             
-            // //validar que no sea variables o funcion
-            // if (tokens.get(logic.getCount()).equals("(")) {
-            //     Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
-            
-            //     if (defunsearch!=null){
-            //         logic.increment(1);
-            //         logic = executeKeyWords(tokens, logic);
-            //         value=logic.getValue();
-            //     }
+             //validar que no sea variables o funcion
+             
+             if (tokens.get(logic.getCount()).equals("(")) {
+                 Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
                 
-            // }
+                 if (defunsearch!=null){
+                     logic.increment(1);
+                     logic = executeKeyWords(tokens, logic);
+                     value=logic.getValue();
+                     System.out.println(logic.getCount());
+                 }
+                
+             }
 
             //validar variables
             if(variables.getValue(value)!=null){
@@ -439,7 +443,7 @@ public class Parser {
                 }
             }
         }*/
-        // System.out.println("Lista de parametros");
+         //System.out.println("Lista de parametros");
         // for (int i = 0; i < parametros.size(); i++) {
         //     System.out.println(parametros.get(i));
         // }
