@@ -78,9 +78,9 @@ public class Parser {
                 break;
             case 4:
                 System.out.println("Error: Al declarar variables");
-                break;
+                break;  
             case 5:
-                System.out.println("Error: Erroneo envio numero de parametros");
+                System.out.println("Error: Al no encontrar valores para operar");
                 break;
         
             default:
@@ -222,39 +222,72 @@ public class Parser {
 
     public Counter quote(ArrayList<String> tokens, Counter logic) {
         StringBuilder quoteBodyBuilder = new StringBuilder();
+        Quote quote = new Quote();
         int i = logic.getCount() + 2; 
-    
-        if (i < tokens.size() && tokens.get(i).equals("(")) {
+        if (tokens.get(i).equals("(")) {
             int parentesisHandler = 1;
-
             quoteBodyBuilder.append(tokens.get(i)).append(" ");
             i++;
-            
-            while (i < tokens.size() && parentesisHandler > 0) {
+            while (parentesisHandler > 0) {
                 String token = tokens.get(i);
                 if (token.equals("(")){
                     parentesisHandler++;
-                }
-                
-                    
+                }      
                 else if (token.equals(")")){
-                
                     parentesisHandler--;
                 }
                 
                 quoteBodyBuilder.append(token).append(" ");
                 i++;
-
-            }
-            
+            }      
         } else {
-            System.out.println("Error: quote sin argumento");
-            
+            System.out.println("Error: quote sin argumento");    
         }
-
-        System.out.println("\nQUOTE: " + quoteBodyBuilder.toString() + "");
+        quote.setExpresion(quoteBodyBuilder);
+        System.out.print(quote.toString());
         logic.increment(i - logic.getCount());
+        return logic;
+    }
 
+    public Counter atom(ArrayList<String> tokens, Counter logic, int opcion) {
+        int i = logic.getCount() + 2; 
+        Quote quote = new Quote();
+        
+        if (i < tokens.size() && (tokens.get(i).equals("quote") || tokens.get(i).equals("'"))) {
+            i++; 
+        }
+        
+        StringBuilder quoteBody = new StringBuilder();
+        int parentesisHandler = 0;
+    
+        if (tokens.get(i).equals("(")) {
+            parentesisHandler = 1;
+            quoteBody.append(tokens.get(i)).append(" ");
+            i++;
+    
+            if (KEYWORDS.contains(tokens.get(i))) {
+                logic.setCount(i);
+                logic = executeKeyWords(tokens, logic);
+                String value = logic.getValue();
+                quoteBody.append(value).append(" ");
+                System.out.println("Valor: "+value);
+            }
+    
+            while (parentesisHandler > 0 && i < tokens.size()) {
+                String token = tokens.get(i);
+    
+                if (token.equals("(")) {
+                    parentesisHandler++;
+                } else if (token.equals(")")) {
+                    parentesisHandler--;
+                }
+                quoteBody.append(token).append(" ");
+                i++;
+            }
+        }  
+        quote.setExpresion(quoteBody);
+        System.out.print(quote.isAtom());
+        logic.increment(i - logic.getCount());
         return logic;
     }
 
@@ -279,8 +312,8 @@ public class Parser {
                 values.add(variables.getValue(tokens.get(i)));
                 i++;
             }
-            else{
-                exitForErrorSintax(3); // Manejo de error sintáctico
+            else if(!tokens.get(i).equals(")")){
+                exitForErrorSintax(5); // Manejo de error sintáctico
             }
             
         }
@@ -293,7 +326,7 @@ public class Parser {
         // Evaluar los valores con el operador
         Calculator calculator = new Calculator();
         Double result = calculator.operation(operator, values);
-        // System.out.println(result);
+        // System.out.println(result); 
 
         // Actualizar el contador
         logic.increment(i - logic.getCount());
@@ -334,6 +367,7 @@ public class Parser {
     }
 
     public Counter setq(ArrayList<String> tokens, Counter logic) {
+                String value = "";
         // Verificar que el primer token después de "setq" sea una variable
         logic.increment(2);
     
@@ -374,6 +408,7 @@ public class Parser {
                 variables.assign(variable, value);
             }
         }
+        
     
         // Verificar el cierre ")"
         if (logic.getCount() >= tokens.size() || !tokens.get(logic.getCount()).equals(")")) {
