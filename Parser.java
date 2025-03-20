@@ -2,7 +2,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -88,10 +87,7 @@ public class Parser {
             case 7: 
                 System.out.println("Error: Fin del programa");
                 break;
-
-            case 8:
-                System.out.println("Error: Al redactar condicion");
-                break;
+        
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
                 break;
@@ -136,13 +132,11 @@ public class Parser {
                         globalEnviroment=0;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
-                    
                     globalEnviroment=0;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
                     counterGlobal=executeKeyWords(tokens, counterGlobal);                
                     i=counterGlobal.getCount();
-                    
                     
                 }else{
                     exitForErrorSintax(3);
@@ -194,28 +188,23 @@ public class Parser {
                 case "setq":
                     logic =setq(tokens, logic);
                     break;
-                
-                case "'" : 
+                    
                 case "quote":
 
                     logic = quote(tokens, logic);
-
                     break;
-
+                    
                 case "cond":
                     logic = cond(tokens, logic);
+                    
                     logic.increment(1);
-                    break;
+                    System.out.println("aaaa");
+                    System.out.println(tokens.get(logic.getCount()));
                     
+                    System.out.println(tokens.get(logic.getCount()+1));
+                    break;
                 case "atom":
-                    logic = atom(tokens, logic);
-
-                    
-                    break;
                 case "list":
-                    logic = list(tokens, logic);
-                
-                    break;
 
                 case "equal":
                 case "<":
@@ -263,84 +252,50 @@ public class Parser {
             System.out.println("Error: quote sin argumento");    
         }
         quote.setExpresion(quoteBodyBuilder);
-        logic.setValue(quote.toAtom());
+        System.out.print(quote.toString());
         logic.increment(i - logic.getCount());
         return logic;
     }
 
-    public Counter atom(ArrayList<String> tokens, Counter logic) {
-        int i = logic.getCount() + 2;  
-        Counter result = new Counter();
-        Quote atom = new Quote();
-        StringBuilder atomContent = new StringBuilder();
+    public Counter atom(ArrayList<String> tokens, Counter logic, int opcion) {
+        int i = logic.getCount() + 2; 
+        Quote quote = new Quote();
         
-        // encentra un parentesis abierto
-        if (tokens.get(i).equals("(")) {
-            result.setCount(i);
-            result = executeKeyWords(tokens, result);
-            atomContent.append(result.getValue());
+        if (i < tokens.size() && (tokens.get(i).equals("quote") || tokens.get(i).equals("'"))) {
+            i++; 
         }
         
-        // si coincide con varialbles
-        else if (variables.getValue(tokens.get(i)) != null) {
-            atomContent.append(variables.getValue(tokens.get(i)));
-            result.setCount(i);
-            
-        // si es un número
-        } else if (isNumber(tokens.get(i)) || variables.getValue(tokens.get(i)) != null) {
-            
-            atomContent.append(tokens.get(i));
-            result.setCount(i); 
-        // cualquier otro caso
-        } else { 
-            atomContent.append(tokens.get(i));
-        } 
-
-        // Verificar si el contenido es un átomo y retornar el resultado
-        
-        atom.setExpresion(atomContent);
-        System.out.println(atom.isAtom());
-        logic.setCount(result.getCount() + 1);
-
-        return logic;
-
-    }
-
-    public Counter list (ArrayList<String> tokens, Counter logic){
-        int i = logic.getCount() + 2;  
-        Counter result = new Counter();
-        Quote atom = new Quote();
-        StringBuilder atomContent = new StringBuilder();
-
-        // encentra un parentesis abierto
+        StringBuilder quoteBody = new StringBuilder();
+        int parentesisHandler = 0;
+    
         if (tokens.get(i).equals("(")) {
-            result.setCount(i);
-            result = executeKeyWords(tokens, result);
-            atomContent.append(result.getValue());
-        }
-        
-        // si coincide con varialbles
-        else if (variables.getValue(tokens.get(i)) != null) {
-            atomContent.append(variables.getValue(tokens.get(i)));
-            result.setCount(i);
-            
-        // si es un número y no es una variable
-        } else if (isNumber(tokens.get(i)) || variables.getValue(tokens.get(i)) != null) {   
-            atomContent.append(tokens.get(i));
-            result.setCount(i); 
-        // cualquier otro caso
-        } else {
-            
-            atomContent.append(tokens.get(i));
-
-        } 
-
-        
-        atom.setExpresion(atomContent);
-
-        System.out.println(atom.isList());
-        logic.setCount(result.getCount() + 1);
-
+            parentesisHandler = 1;
+            quoteBody.append(tokens.get(i)).append(" ");
+            i++;
+    
+            if (KEYWORDS.contains(tokens.get(i))) {
+                logic.setCount(i);
+                logic = executeKeyWords(tokens, logic);
+                String value = logic.getValue();
+                quoteBody.append(value).append(" ");
+                System.out.println("Valor: "+value);
+            }
+    
+            while (parentesisHandler > 0 && i < tokens.size()) {
+                String token = tokens.get(i);
+    
+                if (token.equals("(")) {
+                    parentesisHandler++;
+                } else if (token.equals(")")) {
+                    parentesisHandler--;
+                }
+                quoteBody.append(token).append(" ");
+                i++;
+            }
+        }  
+        quote.setExpresion(quoteBody);
+        System.out.print(quote.isAtom());
+        logic.increment(i - logic.getCount());
         return logic;
     }
 
@@ -410,8 +365,6 @@ public class Parser {
                 values.add(logic.getValue());
             }
             
-
-
             logic.increment(1);;
         }
 
@@ -516,7 +469,8 @@ public class Parser {
         globalEnviroment--; 
         return logic;
 
-    }
+    } 
+
     public Counter cond(ArrayList<String> tokens, Counter logic){
         logic.increment(2); //Saltar lo verificado en executeKeyWords
 
@@ -676,4 +630,5 @@ public class Parser {
         }
         return logic;
     }
+    
 }
