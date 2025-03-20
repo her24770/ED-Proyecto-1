@@ -131,7 +131,7 @@ public class Parser {
                         functions.add(defunNew);
                         globalEnviroment=0;
                     }
-                }else if(KEYWORDS.contains(tokens.get(i+1))){
+                }else if(KEYWORDS.contains(tokens.get(i+1)) || searchDefun(functions, tokens.get(i+1))!=null ){
                     globalEnviroment=0;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
@@ -155,8 +155,8 @@ public class Parser {
         if(logic.getCount()>=tokens.size()){
             exitForErrorSintax(7);
         }
-        if (searchDefun(functions, tokens.get(logic.getCount()))!=null){
-            
+        if (searchDefun(functions, tokens.get(logic.getCount()+1))!=null){
+            logic.increment(1);
             
             // ArrayList para guardar los parámetros
             ArrayList<String> parametrosSend = new ArrayList<>();
@@ -355,13 +355,7 @@ public class Parser {
             }else if(variables.getValue(tokens.get(logic.getCount() ))!=null){
                 values.add(variables.getValue(tokens.get(logic.getCount() )));
             }else if(tokens.get(logic.getCount() ).equals("(")){
-                Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
-                if (defunsearch!=null){
-                    logic.increment(1);
-                    logic = executeKeyWords(tokens, logic);
-                }else{
-                    logic = executeKeyWords(tokens, logic);
-                }
+                logic = executeKeyWords(tokens, logic);
                 values.add(logic.getValue());
             }
             
@@ -405,7 +399,6 @@ public class Parser {
                      logic = executeKeyWords(tokens, logic);
                      value=logic.getValue();
                  }else if (defunsearch!=null){
-                     logic.increment(1);
                      logic = executeKeyWords(tokens, logic);
                      value=logic.getValue();
                  }
