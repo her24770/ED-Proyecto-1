@@ -311,17 +311,34 @@ public class Parser {
                 i++;
             }
             else if(tokens.get(i).equals("(")){
-                Counter counter = new Counter();
-                counter.setCount(i);
-                values.add(String.valueOf(arithmeticOperation(tokens, counter).getValue()));
-                i=counter.getCount()+1;
+                Defun defunsearch = searchDefun(functions, tokens.get(i+1));
+                if (defunsearch!=null){                    
+                    logic.setCount(i+1);
+                    int increment = logic.getCount();
+                    logic = executeKeyWords(tokens, logic);
+                    increment = logic.getCount()-increment;
+                    values.add(logic.getValue());
+                    i = logic.getCount()+1;
+                    logic.increment(1);
+
+                    executeKeyWords(tokens, logic);
+                }else{
+                    Counter counter = new Counter();
+                    counter.setCount(i);
+                    values.add(String.valueOf(arithmeticOperation(tokens, counter).getValue()));
+                    i=counter.getCount()+1;
+                }
+                
             }
             else if (variables.getValue(tokens.get(i))!=null){
                 values.add(variables.getValue(tokens.get(i)));
                 i++;
             }
-            else if(!tokens.get(i).equals(")")){
+            else if(!tokens.get(i).equals(")") && tokens.get(logic.getCount()).equals(")")){
                 exitForErrorSintax(5); // Manejo de error sintáctico
+            }
+            else{
+                exitForErrorSintax(-1);
             }
             
         }

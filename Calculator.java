@@ -41,6 +41,7 @@ public class Calculator {
                     break;
                 default:
                     Parser.exitForErrorSintax(3);
+                    
             }
         }
     

@@ -1,10 +1,8 @@
 (defun sumas(x y)
-  (+ 1 1))
+  (+ 2 1))
+  
+(setq x 3)
 
-(cond
-  ((> 1 5) (setq x 9) (+ x 2))
-  ((equal 3 3) (setq x 10) (* x 2))
-  (t (setq x 0)))
-
-(setq x 1 y 2)
-(setq w (sumas 1 2))
+(+ (- (sumas 2 1) x) 2 5 (* 2 (sumas 1 2)))
+(* x (sumas 2 1) 2)
+(* x (sumas 2 1 ) (+ 1 2))
