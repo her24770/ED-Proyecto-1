@@ -86,10 +86,13 @@ public class Parser {
             case 6: 
                 System.out.println("Error: Numero de parametros incorrecto");
                 break;
-            
-            case 7:
+            case 7: 
+                System.out.println("Error: Fin del programa");
+                break;
+
+            case 8:
                 System.out.println("Error: Al redactar condicion");
-        
+                break;
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
                 break;
@@ -97,13 +100,13 @@ public class Parser {
         System.exit(0);
     }
 
-    boolean globalEnviroment = true;
+    int globalEnviroment = 0;
 
     public void execute(ArrayList<String> tokens) {
         for(int i=0; i<tokens.size(); i++){
             
-            if(tokens.get(i).equals("(")&& globalEnviroment==true){
-                globalEnviroment=false;
+            if(tokens.get(i).equals("(")&& globalEnviroment==0){
+                globalEnviroment=1;
                 if(tokens.get(i+1).equals("defun")){
                     Defun defunNew = new Defun();
                     defunNew.setNombre(tokens.get(i+2));
@@ -131,21 +134,22 @@ public class Parser {
                         defunNew.setParametros(parametros);
                         defunNew.setCuerpo(cuerpo);
                         functions.add(defunNew);
-                        globalEnviroment=true;
+                        globalEnviroment=0;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
-                    globalEnviroment=true;
+                    
+                    globalEnviroment=0;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
                     counterGlobal=executeKeyWords(tokens, counterGlobal);                
                     i=counterGlobal.getCount();
                     
+                    
                 }else{
                     exitForErrorSintax(3);
                 }
             }else if(i>=tokens.size()){
-                System.out.println("Fin del programa");
-                System.exit(0);
+                exitForErrorSintax(7);
 
             }else{
                 exitForErrorSintax(1);
@@ -156,8 +160,7 @@ public class Parser {
     public Counter executeKeyWords(ArrayList<String> tokens, Counter logic){
         
         if(logic.getCount()>=tokens.size()){
-            System.out.println("Error: Fin del programa");
-            System.exit(0);
+            exitForErrorSintax(7);
         }
         if (searchDefun(functions, tokens.get(logic.getCount()))!=null){
             
@@ -177,36 +180,42 @@ public class Parser {
                 logic.increment(1);
             }
 
-            System.out.println("Lista de parametros");
-            for (int i = 0; i < parametrosSend.size(); i++) {
-                System.out.println(parametrosSend.get(i));
-            }
             //error en caso de numero invalido de parametros
             if(parametrosSend.size()!=defunRun.getParametros().size()){
                 exitForErrorSintax(6);
             }            
             // Avanzamos el contador para saltar el paréntesis de cierre
-            //Counter counterDefun = new Counter();
-            //logic=defun(defunRun, counterDefun,parametrosSend);
+            Counter counterDefun = new Counter();
+            logic = defun(defunRun, counterDefun,parametrosSend);
+            System.out.println("funcion finalizada");
             
         }else{
             switch (tokens.get(logic.getCount() + 1)) {
                 case "setq":
                     logic =setq(tokens, logic);
                     break;
-                    
+                
+                case "'" : 
                 case "quote":
 
                     logic = quote(tokens, logic);
+
                     break;
-                    
+
                 case "cond":
                     logic = cond(tokens, logic);
                     logic.increment(1);
                     break;
                     
                 case "atom":
+                    logic = atom(tokens, logic);
+
+                    
+                    break;
                 case "list":
+                    logic = list(tokens, logic);
+                
+                    break;
 
                 case "equal":
                 case "<":
@@ -254,50 +263,84 @@ public class Parser {
             System.out.println("Error: quote sin argumento");    
         }
         quote.setExpresion(quoteBodyBuilder);
-        System.out.print(quote.toString());
+        logic.setValue(quote.toAtom());
         logic.increment(i - logic.getCount());
         return logic;
     }
 
-    public Counter atom(ArrayList<String> tokens, Counter logic, int opcion) {
-        int i = logic.getCount() + 2; 
-        Quote quote = new Quote();
+    public Counter atom(ArrayList<String> tokens, Counter logic) {
+        int i = logic.getCount() + 2;  
+        Counter result = new Counter();
+        Quote atom = new Quote();
+        StringBuilder atomContent = new StringBuilder();
         
-        if (i < tokens.size() && (tokens.get(i).equals("quote") || tokens.get(i).equals("'"))) {
-            i++; 
+        // encentra un parentesis abierto
+        if (tokens.get(i).equals("(")) {
+            result.setCount(i);
+            result = executeKeyWords(tokens, result);
+            atomContent.append(result.getValue());
         }
         
-        StringBuilder quoteBody = new StringBuilder();
-        int parentesisHandler = 0;
-    
+        // si coincide con varialbles
+        else if (variables.getValue(tokens.get(i)) != null) {
+            atomContent.append(variables.getValue(tokens.get(i)));
+            result.setCount(i);
+            
+        // si es un número
+        } else if (isNumber(tokens.get(i)) || variables.getValue(tokens.get(i)) != null) {
+            
+            atomContent.append(tokens.get(i));
+            result.setCount(i); 
+        // cualquier otro caso
+        } else { 
+            atomContent.append(tokens.get(i));
+        } 
+
+        // Verificar si el contenido es un átomo y retornar el resultado
+        
+        atom.setExpresion(atomContent);
+        System.out.println(atom.isAtom());
+        logic.setCount(result.getCount() + 1);
+
+        return logic;
+
+    }
+
+    public Counter list (ArrayList<String> tokens, Counter logic){
+        int i = logic.getCount() + 2;  
+        Counter result = new Counter();
+        Quote atom = new Quote();
+        StringBuilder atomContent = new StringBuilder();
+
+        // encentra un parentesis abierto
         if (tokens.get(i).equals("(")) {
-            parentesisHandler = 1;
-            quoteBody.append(tokens.get(i)).append(" ");
-            i++;
-    
-            if (KEYWORDS.contains(tokens.get(i))) {
-                logic.setCount(i);
-                logic = executeKeyWords(tokens, logic);
-                String value = logic.getValue();
-                quoteBody.append(value).append(" ");
-                System.out.println("Valor: "+value);
-            }
-    
-            while (parentesisHandler > 0 && i < tokens.size()) {
-                String token = tokens.get(i);
-    
-                if (token.equals("(")) {
-                    parentesisHandler++;
-                } else if (token.equals(")")) {
-                    parentesisHandler--;
-                }
-                quoteBody.append(token).append(" ");
-                i++;
-            }
-        }  
-        quote.setExpresion(quoteBody);
-        System.out.print(quote.isAtom());
-        logic.increment(i - logic.getCount());
+            result.setCount(i);
+            result = executeKeyWords(tokens, result);
+            atomContent.append(result.getValue());
+        }
+        
+        // si coincide con varialbles
+        else if (variables.getValue(tokens.get(i)) != null) {
+            atomContent.append(variables.getValue(tokens.get(i)));
+            result.setCount(i);
+            
+        // si es un número y no es una variable
+        } else if (isNumber(tokens.get(i)) || variables.getValue(tokens.get(i)) != null) {   
+            atomContent.append(tokens.get(i));
+            result.setCount(i); 
+        // cualquier otro caso
+        } else {
+            
+            atomContent.append(tokens.get(i));
+
+        } 
+
+        
+        atom.setExpresion(atomContent);
+
+        System.out.println(atom.isList());
+        logic.setCount(result.getCount() + 1);
+
         return logic;
     }
 
@@ -360,6 +403,8 @@ public class Parser {
                 logic = executeKeyWords(tokens, logic);
                 values.add(logic.getValue());
             }
+
+
             logic.increment(1);;
         }
 
@@ -401,7 +446,6 @@ public class Parser {
                      logic.increment(1);
                      logic = executeKeyWords(tokens, logic);
                      value=logic.getValue();
-                     System.out.println(logic.getCount());
                  }
                 
              }
@@ -416,7 +460,7 @@ public class Parser {
 
     
             // Asignar la variable y su valor
-            if(globalEnviroment){
+            if(globalEnviroment==0){
                 variables.assign(variable, value);
             }
         }
@@ -442,22 +486,29 @@ public class Parser {
         return null;
     }
 
-    public Counter defun(Defun defunRun, Counter logic, ArrayList<String> parametros){ 
-        //manejar funcion en el global
-        /*for(int i=0; i<defunRun.getParametros().size(); i++){
-            if(!isNumber(defunRun.getParametros().get(i))){
-                if(variables.getValue(defunRun.getParametros().get(i))!=null){
-                    variables.assign(defunRun.getParametros().get(i), variables.getValue(defunRun.getParametros().get(i)));       
-                }
+    public Counter defun(Defun defunRun, Counter logicD, ArrayList<String> parametros){
+        globalEnviroment++; 
+        ArrayList<String> tokensD = defunRun.getCuerpo();
+        //aregar parametros como variables locles
+        for(int j=0; j<parametros.size(); j++){
+            defunRun.addVariable(defunRun.getParametros().get(j),parametros.get(j));
+        }
+        System.out.println("funcion interns");
+        while(logicD.getCount()<tokensD.size()){
+            System.out.println(tokensD.get(logicD.getCount()));
+            System.out.println(logicD.getCount());
+            //manejar funcion interna
+            if (!tokensD.get(logicD.getCount()).equals("(")){
+                exitForErrorSintax(1);
+            }else if(KEYWORDS.contains(tokensD.get(logicD.getCount()+1))){
+                System.out.println("aaaaa");
+                System.out.println(tokensD.get(logicD.getCount())+" "+tokensD.get(logicD.getCount()));
+                logicD=executeKeyWords(tokensD, logicD);  
+                logicD.increment(1);
             }
-        }*/
-         //System.out.println("Lista de parametros");
-        // for (int i = 0; i < parametros.size(); i++) {
-        //     System.out.println(parametros.get(i));
-        // }
-         System.out.println("Defun");
-        //manejar funcion interna
-        return logic;
+        }
+        globalEnviroment--; 
+        return logicD;
 
     }
     public Counter cond(ArrayList<String> tokens, Counter logic){

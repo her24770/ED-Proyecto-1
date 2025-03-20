@@ -11,9 +11,7 @@ public class Main {
         String code = readFile("codigo.txt");
         if(parser.cierreParentesis(code)){
             tokens = parser.tokenize(code);
-            for (String token : tokens) {
-                System.out.println(token);
-            }
+            
         }else{
             System.out.println("Error: Parentesis no cerrados");
         }

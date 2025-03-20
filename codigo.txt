@@ -1,6 +1,5 @@
-(setq x 1 y x)
 
-(defun suma (x y)
-  (+ x y))
 
-(setq w (suma  2 2))
+
+
+
