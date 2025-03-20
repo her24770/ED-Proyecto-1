@@ -54,3 +54,11 @@
 (setq lista1 (list 1 2 3))  
 (setq lista2 (list 1 2 3))  
 (equal lista1 lista2)
+
+
+
+(cond
+  ((> x 10) (- 10 x) (setq x 0))
+  ((< x 5) (+ 5 x) (setq x 5))
+  ((= x 7) (+ 7 x) (setq x (+ 5 1)))
+  (t (> 3 4) (setq x 999)))

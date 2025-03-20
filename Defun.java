@@ -1,12 +1,12 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class Defun<T> {
+public class Defun{
 
     // Atributos
     private String nombre;
-    private ArrayList<HashMap<String, String>> parametros;
-    private ArrayList<String> variables;
+    private ArrayList<String> parametros;
+    private HashMap<String,String> variables;
     private ArrayList<String> cuerpo;
     public String getNombre() {
         return nombre;
@@ -14,16 +14,16 @@ public class Defun<T> {
     public void setNombre(String nombre) {
         this.nombre = nombre;
     }
-    public ArrayList<HashMap<String, String>> getParametros() {
+    public ArrayList<String> getParametros() {
         return parametros;
     }
-    public void setParametros(ArrayList<HashMap<String, String>> parametros) {
+    public void setParametros(ArrayList<String> parametros) {
         this.parametros = parametros;
     }
-    public ArrayList<String> getVariables() {
+    public HashMap<String,String> getVariables() {
         return variables;
     }
-    public void setVariables(ArrayList<String> variables) {
+    public void setVariables(HashMap<String,String> variables) {
         this.variables = variables;
     }
     public ArrayList<String> getCuerpo() {

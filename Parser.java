@@ -1,7 +1,7 @@
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -56,7 +56,6 @@ public class Parser {
         if (input == null || input.isEmpty()) {
             return false;
         }
-        
         try {
             Double.parseDouble(input);
             return true;
@@ -79,6 +78,9 @@ public class Parser {
                 break;
             case 4:
                 System.out.println("Error: Al declarar variables");
+                break;
+            case 5:
+                System.out.println("Error: Erroneo envio numero de parametros");
                 break;
         
             default:
@@ -118,8 +120,6 @@ public class Parser {
                                 cuerpo.add(tokens.get(i));
                                 i++;
                             }
-                        
-                            
                         }
                         defunNew.setParametros(parametros);
                         defunNew.setCuerpo(cuerpo);
@@ -152,38 +152,70 @@ public class Parser {
             System.out.println("Error: Fin del programa");
             System.exit(0);
         }
-        switch (tokens.get(logic.getCount() + 1)) {
-            case "setq":
-                logic =setq(tokens, logic);
-                break;
-                
-            case "quote":
+        if (searchDefun(functions, tokens.get(logic.getCount()))!=null){
+            System.out.println("Encontrado defun");
+            
+            // ArrayList para guardar los parámetros
+            ArrayList<String> parametrosSend = new ArrayList<>();
+            Defun defunRun =searchDefun(functions, tokens.get(logic.getCount()));
+            logic.increment(1);
+            // Leemos los tokens hasta encontrar un paréntesis de cierre
+            while (!tokens.get(logic.getCount()).equals(")")) {
+                // Validar los parametros y setearlos como variables
+                if(variables.getValue(tokens.get(logic.getCount()))!=null){
+                    parametrosSend.add(variables.getValue(tokens.get(logic.getCount())));
+                }else{
+                    parametrosSend.add(tokens.get(logic.getCount()));
+                }
+                logic.increment(1);
+            }
 
-                logic = quote(tokens, logic);
-                break;
-                
-            case "cond":
-                
-            case "atom":
-            case "list":
 
-            case "equal":
-            case "<":
-            case ">":
-                logic=predicates(tokens,logic);
-                break;
-                
-                
-            case "+":
-            case "-":
-            case "*":
-            case "/":
-                logic=arithmeticOperation(tokens, logic);
-                System.out.println(logic.getValue());
-                break;
-        
-            default:
-                break;
+            for (int i = 0; i < parametrosSend.size(); i++) {
+                System.out.println(parametrosSend.get(i));
+            }
+            //error en caso de numero invalido de parametros
+            if(parametrosSend.size()!=defunRun.getParametros().size()){
+                exitForErrorSintax(5);
+            }
+            
+            // Avanzamos el contador para saltar el paréntesis de cierre
+            Counter counterDefun = new Counter();
+            logic=defun(defunRun, counterDefun,parametrosSend);
+            
+        }else{
+            switch (tokens.get(logic.getCount() + 1)) {
+                case "setq":
+                    logic =setq(tokens, logic);
+                    break;
+                    
+                case "quote":
+
+                    logic = quote(tokens, logic);
+                    break;
+                    
+                case "cond":
+                    
+                case "atom":
+                case "list":
+
+                case "equal":
+                case "<":
+                case ">":
+                    logic=predicates(tokens,logic);
+                    break;
+                    
+                    
+                case "+":
+                case "-":
+                case "*":
+                case "/":
+                    logic=arithmeticOperation(tokens, logic);
+                    break;
+            
+                default:
+                    break;
+            }
         }
         return logic;
     }
@@ -224,18 +256,6 @@ public class Parser {
         logic.increment(i - logic.getCount());
 
         return logic;
-    }
-
-    public int aritmetic(ArrayList<String> tokens, int i){
-        i=i+2;
-        while(true){
-            if (tokens.get(i)==")"){
-                i++;
-                return i;
-            }else if(KEYWORDS.contains(tokens.get(i))){
-                
-            }
-        }
     }
 
     public Counter arithmeticOperation(ArrayList<String> tokens, Counter logic) {
@@ -287,18 +307,21 @@ public class Parser {
         List<String> values = new ArrayList<>();
 
         // Recopilar todos los valores hasta encontrar ")"
-        int i = logic.getCount() + 2;
-        while (i < tokens.size() && !tokens.get(i).equals(")")) {
-            if (isNumber(tokens.get(i))) {
-                values.add(tokens.get(i));
-            }else if(variables.getValue(tokens.get(i))!=null){
-                values.add(variables.getValue(tokens.get(i)));
+        logic.increment(2);
+        while (logic.getCount() < tokens.size() && !tokens.get(logic.getCount() ).equals(")")) {
+            if (isNumber(tokens.get(logic.getCount() ))) {
+                values.add(tokens.get(logic.getCount() ));
+            }else if(variables.getValue(tokens.get(logic.getCount() ))!=null){
+                values.add(variables.getValue(tokens.get(logic.getCount() )));
+            }else if(tokens.get(logic.getCount() ).equals("(")){
+                logic = executeKeyWords(tokens, logic);
+                values.add(logic.getValue());
             }
-            i++;
+            logic.increment(1);;
         }
 
         // Verificar si se encontró el cierre ")"
-        if (i >= tokens.size() || !tokens.get(i).equals(")")) {
+        if (logic.getCount()  >= tokens.size() || !tokens.get(logic.getCount() ).equals(")")) {
             exitForErrorSintax(2); // Manejo de error sintáctico
         }
 
@@ -306,31 +329,44 @@ public class Parser {
         Predicate predicate = new Predicate();
         boolean result = predicate.evaluate(operator, values);
         logic.setValueBool(result);
-        // Actualizar el contador
-        logic.increment(i - logic.getCount());
+        System.out.println(result);
         return logic;
     }
 
     public Counter setq(ArrayList<String> tokens, Counter logic) {
         // Verificar que el primer token después de "setq" sea una variable
-        int i = logic.getCount() + 2;
+        logic.increment(2);
     
         // Procesar pares de variables y valores
-        while (i < tokens.size() && !tokens.get(i).equals(")")) {
-            String variable = tokens.get(i); // Nombre de la variable
-            i++;
+        while (logic.getCount() < tokens.size() && !tokens.get(logic.getCount()).equals(")")) {
+            String variable = tokens.get(logic.getCount()); // Nombre de la variable
+            logic.increment(1);;
     
-            if (i >= tokens.size()) {
+            if (logic.getCount() >= tokens.size()) {
                 exitForErrorSintax(4); // Error si no hay valor para la variable
             }
             
-            String value = tokens.get(i); // Valor de la variable
-            i++;
+            String value = tokens.get(logic.getCount()); // Valor de la variable
             
             //validar que no sea variables o funcion
+            if (tokens.get(logic.getCount()).equals("(")) {
+                Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
+            
+                if (defunsearch!=null){
+                    logic.increment(1);
+                    logic = executeKeyWords(tokens, logic);
+                    value=logic.getValue();
+                }
+                
+            }
+
+            //validar variables
             if(variables.getValue(value)!=null){
                 value=variables.getValue(value);
             }
+
+            
+            logic.increment(1);;
 
     
             // Asignar la variable y su valor
@@ -340,16 +376,42 @@ public class Parser {
         }
     
         // Verificar el cierre ")"
-        if (i >= tokens.size() || !tokens.get(i).equals(")")) {
+        if (logic.getCount() >= tokens.size() || !tokens.get(logic.getCount()).equals(")")) {
             exitForErrorSintax(4); // Manejo de error sintáctico
         }
-    
-        // Actualizar el contador
-        logic.increment(i - logic.getCount());
     
         // Opcional: Imprimir las variables para debugging
         variables.printVariables();
     
         return logic;
     }
+
+    public Defun searchDefun(ArrayList<Defun> functions, String nombre) {
+        for (Defun defun : functions) {
+            if(defun.getNombre().equals(nombre)) {
+                return defun;
+            }
+        }
+        return null;
+    }
+
+    public Counter defun(Defun defunRun, Counter logic, ArrayList<String> parametros){ 
+        //manejar funcion en el global
+        /*for(int i=0; i<defunRun.getParametros().size(); i++){
+            if(!isNumber(defunRun.getParametros().get(i))){
+                if(variables.getValue(defunRun.getParametros().get(i))!=null){
+                    variables.assign(defunRun.getParametros().get(i), variables.getValue(defunRun.getParametros().get(i)));       
+                }
+            }
+        }*/
+        // System.out.println("Lista de parametros");
+        // for (int i = 0; i < parametros.size(); i++) {
+        //     System.out.println(parametros.get(i));
+        // }
+         System.out.println("Defun");
+        //manejar funcion interna
+        return logic;
+
+    } 
+    
 }
