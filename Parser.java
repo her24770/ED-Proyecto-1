@@ -85,6 +85,9 @@ public class Parser {
             case 6: 
                 System.out.println("Error: Numero de parametros incorrecto");
                 break;
+            case 7: 
+                System.out.println("Error: Fin del programa");
+                break;
         
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
@@ -93,13 +96,13 @@ public class Parser {
         System.exit(0);
     }
 
-    boolean globalEnviroment = true;
+    int globalEnviroment = 0;
 
     public void execute(ArrayList<String> tokens) {
         for(int i=0; i<tokens.size(); i++){
             
-            if(tokens.get(i).equals("(")&& globalEnviroment==true){
-                globalEnviroment=false;
+            if(tokens.get(i).equals("(")&& globalEnviroment==0){
+                globalEnviroment=1;
                 if(tokens.get(i+1).equals("defun")){
                     Defun defunNew = new Defun();
                     defunNew.setNombre(tokens.get(i+2));
@@ -127,10 +130,10 @@ public class Parser {
                         defunNew.setParametros(parametros);
                         defunNew.setCuerpo(cuerpo);
                         functions.add(defunNew);
-                        globalEnviroment=true;
+                        globalEnviroment=0;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1))){
-                    globalEnviroment=true;
+                    globalEnviroment=0;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
                     counterGlobal=executeKeyWords(tokens, counterGlobal);                
@@ -140,8 +143,7 @@ public class Parser {
                     exitForErrorSintax(3);
                 }
             }else if(i>=tokens.size()){
-                System.out.println("Fin del programa");
-                System.exit(0);
+                exitForErrorSintax(7);
 
             }else{
                 exitForErrorSintax(1);
@@ -152,8 +154,7 @@ public class Parser {
     public Counter executeKeyWords(ArrayList<String> tokens, Counter logic){
         
         if(logic.getCount()>=tokens.size()){
-            System.out.println("Error: Fin del programa");
-            System.exit(0);
+            exitForErrorSintax(7);
         }
         if (searchDefun(functions, tokens.get(logic.getCount()))!=null){
             
@@ -173,17 +174,14 @@ public class Parser {
                 logic.increment(1);
             }
 
-            System.out.println("Lista de parametros");
-            for (int i = 0; i < parametrosSend.size(); i++) {
-                System.out.println(parametrosSend.get(i));
-            }
             //error en caso de numero invalido de parametros
             if(parametrosSend.size()!=defunRun.getParametros().size()){
                 exitForErrorSintax(6);
             }            
             // Avanzamos el contador para saltar el paréntesis de cierre
-            //Counter counterDefun = new Counter();
-            //logic=defun(defunRun, counterDefun,parametrosSend);
+            Counter counterDefun = new Counter();
+            logic = defun(defunRun, counterDefun,parametrosSend);
+            System.out.println("funcion finalizada");
             
         }else{
             switch (tokens.get(logic.getCount() + 1)) {
@@ -393,7 +391,6 @@ public class Parser {
                      logic.increment(1);
                      logic = executeKeyWords(tokens, logic);
                      value=logic.getValue();
-                     System.out.println(logic.getCount());
                  }
                 
              }
@@ -408,7 +405,7 @@ public class Parser {
 
     
             // Asignar la variable y su valor
-            if(globalEnviroment){
+            if(globalEnviroment==0){
                 variables.assign(variable, value);
             }
         }
@@ -434,22 +431,29 @@ public class Parser {
         return null;
     }
 
-    public Counter defun(Defun defunRun, Counter logic, ArrayList<String> parametros){ 
-        //manejar funcion en el global
-        /*for(int i=0; i<defunRun.getParametros().size(); i++){
-            if(!isNumber(defunRun.getParametros().get(i))){
-                if(variables.getValue(defunRun.getParametros().get(i))!=null){
-                    variables.assign(defunRun.getParametros().get(i), variables.getValue(defunRun.getParametros().get(i)));       
-                }
+    public Counter defun(Defun defunRun, Counter logicD, ArrayList<String> parametros){
+        globalEnviroment++; 
+        ArrayList<String> tokensD = defunRun.getCuerpo();
+        //aregar parametros como variables locles
+        for(int j=0; j<parametros.size(); j++){
+            defunRun.addVariable(defunRun.getParametros().get(j),parametros.get(j));
+        }
+        System.out.println("funcion interns");
+        while(logicD.getCount()<tokensD.size()){
+            System.out.println(tokensD.get(logicD.getCount()));
+            System.out.println(logicD.getCount());
+            //manejar funcion interna
+            if (!tokensD.get(logicD.getCount()).equals("(")){
+                exitForErrorSintax(1);
+            }else if(KEYWORDS.contains(tokensD.get(logicD.getCount()+1))){
+                System.out.println("aaaaa");
+                System.out.println(tokensD.get(logicD.getCount())+" "+tokensD.get(logicD.getCount()));
+                logicD=executeKeyWords(tokensD, logicD);  
+                logicD.increment(1);
             }
-        }*/
-         //System.out.println("Lista de parametros");
-        // for (int i = 0; i < parametros.size(); i++) {
-        //     System.out.println(parametros.get(i));
-        // }
-         System.out.println("Defun");
-        //manejar funcion interna
-        return logic;
+        }
+        globalEnviroment--; 
+        return logicD;
 
     } 
     
