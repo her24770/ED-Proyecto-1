@@ -367,7 +367,7 @@ public class Parser {
     }
 
     public Counter setq(ArrayList<String> tokens, Counter logic) {
-                String value = "";
+                // String value = "";
         // Verificar que el primer token después de "setq" sea una variable
         logic.increment(2);
     
@@ -382,17 +382,17 @@ public class Parser {
             
             String value = tokens.get(logic.getCount()); // Valor de la variable
             
-            //validar que no sea variables o funcion
-            if (tokens.get(logic.getCount()).equals("(")) {
-                Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
+            // //validar que no sea variables o funcion
+            // if (tokens.get(logic.getCount()).equals("(")) {
+            //     Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
             
-                if (defunsearch!=null){
-                    logic.increment(1);
-                    logic = executeKeyWords(tokens, logic);
-                    value=logic.getValue();
-                }
+            //     if (defunsearch!=null){
+            //         logic.increment(1);
+            //         logic = executeKeyWords(tokens, logic);
+            //         value=logic.getValue();
+            //     }
                 
-            }
+            // }
 
             //validar variables
             if(variables.getValue(value)!=null){
