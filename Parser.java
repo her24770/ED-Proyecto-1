@@ -1,6 +1,8 @@
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -87,6 +89,9 @@ public class Parser {
             case 7: 
                 System.out.println("Error: Fin del programa");
                 break;
+            case 8: 
+                System.out.println("Error: Funcion ya declarada con el mismo nombre");
+                break;
         
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
@@ -104,7 +109,10 @@ public class Parser {
                 globalEnviroment=1;
                 if(tokens.get(i+1).equals("defun")){
                     Defun defunNew = new Defun();
-                    defunNew.setNombre(tokens.get(i+2));
+                    if(searchDefun(functions, tokens.get(i+2))!=null){
+                        exitForErrorSintax(8);
+                    }else{
+                        defunNew.setNombre(tokens.get(i+2));
                     if(tokens.get(i+3).equals("(")){
                         i=i+4;
                         ArrayList<String> parametros = new ArrayList<>();
@@ -129,6 +137,8 @@ public class Parser {
                         defunNew.setParametros(parametros);
                         defunNew.setCuerpo(cuerpo);
                         functions.add(defunNew);
+                    }
+                    
                         globalEnviroment=0;
                     }
                 }else if(KEYWORDS.contains(tokens.get(i+1)) || searchDefun(functions, tokens.get(i+1))!=null ){
@@ -196,12 +206,8 @@ public class Parser {
                     
                 case "cond":
                     logic = cond(tokens, logic);
-                    
                     logic.increment(1);
-                    System.out.println("aaaa");
-                    System.out.println(tokens.get(logic.getCount()));
-                    
-                    System.out.println(tokens.get(logic.getCount()+1));
+                    System.out.println("valor retorno cont  "+logic.getValue());
                     break;
                 case "atom":
                 case "list":
@@ -339,6 +345,7 @@ public class Parser {
         // Actualizar el contador
         logic.increment(i - logic.getCount());
         logic.setValue(result.toString());
+        System.out.println("reultado suma: "+result);
         return logic;
     }
 
@@ -406,14 +413,27 @@ public class Parser {
             }
 
             //validar variables
-            if(variables.getValue(value)!=null){
-                value=variables.getValue(value);
+            if(globalEnviroment!=0){
+                if(logic.getVairablesLocales().getValue(value)!=null){
+                    value=logic.getVairablesLocales().getValue(value);
+                }else if(variables.getValue(value)!=null){
+                    value=variables.getValue(value);
+                
+                }
+            }else{
+                if(variables.getValue(value)!=null){
+                    value=variables.getValue(value);
+                }
             }
+
+            
 
             logic.increment(1);;    
             // Asignar la variable y su valor
             if(globalEnviroment==0){
                 variables.assign(variable, value);
+            }else{
+                logic.addVariableLocal(variable, value);
             }
         }
         
@@ -424,7 +444,10 @@ public class Parser {
         }
     
         // Opcional: Imprimir las variables para debugging
+        System.out.println("Variables:");
         variables.printVariables();
+        System.out.println("Variables locales:");
+        logic.getVairablesLocales().printVariables();
     
         return logic;
     }
@@ -441,20 +464,25 @@ public class Parser {
     public Counter defun(Defun defunRun, Counter logic, ArrayList<String> parametros){
         globalEnviroment++; 
         Counter logicD = new Counter();
+        for (int j = 0; j < parametros.size(); j++) {
+            logicD.addVariableLocal(defunRun.getParametros().get(j), parametros.get(j));
+        }
+
         ArrayList<String> tokensD = defunRun.getCuerpo();
         //aregar parametros como variables locles
         for(int j=0; j<parametros.size(); j++){
             defunRun.addVariable(defunRun.getParametros().get(j),parametros.get(j));
         }
         System.out.println("funcion interns");
-        System.out.println(logicD.getCount());
         while(logicD.getCount()<tokensD.size()){
+            System.out.println(logicD.getCount()+""+tokensD.get(logicD.getCount()+1));
+
             //manejar funcion interna
             if (!tokensD.get(logicD.getCount()).equals("(")){
                 exitForErrorSintax(1);
-            }else if(KEYWORDS.contains(tokensD.get(logicD.getCount()+1))){
+            }else if(KEYWORDS.contains(tokensD.get(logicD.getCount()+1))|| searchDefun(functions, tokensD.get(logicD.getCount()+1))!=null){
+                System.out.println(tokensD.get(logicD.getCount())+ " counter :"+logicD.getCount());
                 logicD=executeKeyWords(tokensD, logicD);  
-                System.out.println("valor: "+logicD.getCount());
                 logicD.increment(1);
             }
         }
@@ -551,8 +579,8 @@ public class Parser {
 
                         logic.increment(1);
                     }
-            
                     logic.increment(-1); //colocar en el token anterior para el funcionamiento de execute
+                
                     return logic;
 
                 } else {

@@ -2,7 +2,20 @@ public class Counter{
     private int count = 0;
     private String value;
     private boolean valueBool;
+    private SetQ vairablesLocales= new SetQ();
     
+
+    public SetQ getVairablesLocales() {
+        return vairablesLocales;
+    }
+
+    public void setVairablesLocales(SetQ vairablesLocales) {
+        this.vairablesLocales = vairablesLocales;
+    }
+
+    public void addVariableLocal(String variable,String value){
+        vairablesLocales.assign(variable, value);
+    }
 
     public boolean isValueBool() {
         return valueBool;

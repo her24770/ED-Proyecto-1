@@ -15,7 +15,7 @@
   (+ a b)
   (setq y (+ 1 2)))
   (setq x 20)
-  (+ y x a b))    
+  (+ y x a b)
 
 ;;uso de setq 4
 (setq x 10)            
@@ -62,3 +62,30 @@
   ((< x 5) (+ 5 x) (setq x 5))
   ((= x 7) (+ 7 x) (setq x (+ 5 1)))
   (t (> 3 4) (setq x 999)))
+
+
+
+
+(defun fibonacci (n)
+  (cond
+    ((equal n 0) 0)           
+    ((equal n 1) 1)             
+    (t (+ (fibonacci (- n 1))
+          (fibonacci (- n 2))
+      )
+    )
+  )
+) 
+
+(fibonacci 5);
+
+(defun factorial (n)
+  (cond
+    ((equal n 0) 1)      
+    (t (* n (factorial (- n 1))))
+  )
+)  
+
+
+(factorial 6)
+
