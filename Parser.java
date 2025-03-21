@@ -606,10 +606,17 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
 
     } 
 
+    /**
+     * Función para evaluar la estructura de COND
+     * @param tokens codigo a evaluar
+     * @param logic contador de tokens y logistica
+     * @return contador actualizado con valor y posición
+     */
     public Counter cond(ArrayList<String> tokens, Counter logic){
-        logic.increment(2); //Saltar lo verificado en executeKeyWords
-
-        //Verificar estrucutura de COND (doble parentesis)
+        Counter value = new Counter();
+        logic.increment(2); // Saltar lo verificado en executeKeyWords
+    
+        // Verificar estructura de COND (doble paréntesis)
         if(tokens.get(logic.getCount()).equals("(") && tokens.get(logic.getCount()+1).equals("(")){
             logic.increment(1);
     
@@ -618,11 +625,11 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                !tokens.get(logic.getCount()+1).equals("setq") && !tokens.get(logic.getCount()+1).equals("defun") &&
                !tokens.get(logic.getCount()+1).equals("cond") && !tokens.get(logic.getCount()+1).equals("quote") && !tokens.get(logic.getCount()+1).equals("t")){
                 
-                //verifica si el comparador es valido
+                // Verifica si el comparador es válido
                 if(!KEYWORDS.contains(tokens.get(logic.getCount()+1))){
                     exitForErrorSintax(7);
                 }
-
+    
                 int parenthesisCount = 1;
                 ArrayList<String> condition = new ArrayList<>();
     
@@ -639,15 +646,16 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 condition.add(")"); // Agrega el paréntesis de cierre para usar executeKeyWords
                 logic.increment(1);  
     
-                //Separar cada instruccion y meterlas en una
+                // Separar cada instrucción y meterlas en una lista
                 ArrayList<ArrayList<String>> instructionList = new ArrayList<>();
-                while(!tokens.get(logic.getCount()).equals(")")){
+                while(logic.getCount() < tokens.size() && !tokens.get(logic.getCount()).equals(")")){
                     if(tokens.get(logic.getCount()).equals("(")){
                         ArrayList<String> instruction = new ArrayList<>();
                         int parenthesisCounter = 1;
                         instruction.add(tokens.get(logic.getCount()));
                         logic.increment(1);
-                        while(parenthesisCounter != 0){
+    
+                        while(parenthesisCounter != 0 && logic.getCount() < tokens.size()){
                             String token = tokens.get(logic.getCount());
                             if(token.equals("(")){
                                 parenthesisCounter++;
@@ -658,13 +666,15 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                             logic.increment(1);
                         }
                         instructionList.add(instruction);
+                        
                     } 
-                    //para agregar los tokens fuera de parentesis
+                    // Para agregar los tokens fuera de paréntesis
                     else {
                         ArrayList<String> instruccion = new ArrayList<>();
                         instruccion.add(tokens.get(logic.getCount()));
                         logic.increment(1);
                         instructionList.add(instruccion);
+                        System.out.println(instructionList);
                     }
                 }
     
@@ -675,35 +685,61 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
     
                 if(doExecute){
                     // Ejecutar cada instrucción por separado
-                    for(ArrayList<String> instruccion : instructionList){
-                        Counter c = new Counter();
-                        c.setCount(0);
-                        executeKeyWords(instruccion, c);
-                    }
-                    
-                    logic.increment(1); // avanzar al cierre de parentesis
+                    if(instructionList.size() != 0){
 
-                    parenthesisCount =1;
-                    while(parenthesisCount!=-1){
+                        if(instructionList.getLast().size() == 1){
+                            String token = instructionList.getLast().get(0);
+                            System.out.println(token);
+                            if(isNumber(token)){
+                                value.setValue(token);
+
+                            }else if(globalEnviroment!=0){
+                                if(logic.getVairablesLocales().getValue(token)!=null){
+                                    value.setValue(logic.getVairablesLocales().getValue(token));
+                                }else if(variables.getValue(token)!=null){
+                                    value.setValue(variables.getValue(token));
+                                }else{
+                                    value.setValue(token);
+                                }
+                            }else if (globalEnviroment==0){
+                                if(variables.getValue(token)!=null){
+                                    value.setValue(variables.getValue(token));
+                                }else{
+                                    value.setValue(token);  
+                                }
+                            }
+                            
+                        }else{
+                            for(ArrayList<String> instruction : instructionList){
+                                Counter c = new Counter();
+                                value = executeKeyWords(instruction, c);
+                                System.out.println("valor retorno xd : "+value.getValue());  
+                            }
+
+                        }
+                    }
+    
+                    logic.increment(1); // Avanzar al cierre de paréntesis
+    
+                    parenthesisCount = 1;
+                    while(parenthesisCount != -1 && logic.getCount() < tokens.size()){
                         if(tokens.get(logic.getCount()+1).equals("(")){
                             parenthesisCount++;
                         }else if(tokens.get(logic.getCount()+1).equals(")")){
                             parenthesisCount--;
                         }
-
                         logic.increment(1);
                     }
-                    logic.increment(-1); //colocar en el token anterior para el funcionamiento de execute
-                
+                    logic.setValue(value.getValue()); // Colocar en el token anterior para el funcionamiento de execute
                     return logic;
-
+    
                 } else {
-                    //si no se ha terminado el cond, hacer recursividad con las demas condiciones
-                    if(!tokens.get(logic.getCount()+1).equals(")")){
+                    // Si no se ha terminado el cond, hacer recursividad con las demás condiciones
+                    if(logic.getCount() < tokens.size() && !tokens.get(logic.getCount()+1).equals(")")){
                         logic.increment(-1);
                         return cond(tokens, logic);
                     }
-                    //si no se cumple y no hay otras condiciones avanza a la siguiente instruccion
+                    // Si no se cumple y no hay otras condiciones, avanza a la siguiente instrucción
                     else {
                         return logic; 
                     }
@@ -712,23 +748,23 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
             } else {
                 exitForErrorSintax(7);
             }
-
-        //cuando encuentra t siempre se ejecutan las instrucciones siguientes
+    
+        // Cuando encuentra t, siempre se ejecutan las instrucciones siguientes
         } else if(tokens.get(logic.getCount()).equals("(") && tokens.get(logic.getCount()+1).equals("t")){
-            //verificar estructura
+            // Verificar estructura
             if(tokens.get(logic.getCount()+2).equals("(")){
                 logic.increment(2);
-
-                //Separar cada instruccion y meterlas en una lista
+    
+                // Separar cada instrucción y meterlas en una lista
                 ArrayList<ArrayList<String>> instructionList = new ArrayList<>();
-                while(!tokens.get(logic.getCount()).equals(")")){
+                while(logic.getCount() < tokens.size() && !tokens.get(logic.getCount()).equals(")")){
                     if(tokens.get(logic.getCount()).equals("(")){
                         ArrayList<String> instruccion = new ArrayList<>();
                         int parenthesisCounter = 1;
                         instruccion.add(tokens.get(logic.getCount()));
                         logic.increment(1);
-
-                        while(parenthesisCounter != 0){
+    
+                        while(parenthesisCounter != 0 && logic.getCount() < tokens.size()){
                             String token = tokens.get(logic.getCount());
                             if(token.equals("(")){
                                 parenthesisCounter++;
@@ -739,8 +775,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                             logic.increment(1);
                         }
                         instructionList.add(instruccion);
-
-                    //tokens sueltos
+                    // Para tokens sueltos
                     } else {
                         ArrayList<String> instruccion = new ArrayList<>();
                         instruccion.add(tokens.get(logic.getCount()));
@@ -752,9 +787,9 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 // Ejecutar cada instrucción
                 for(ArrayList<String> instruction : instructionList){
                     Counter c = new Counter();
-                    c.setCount(0);
-                    executeKeyWords(instruction, c);
+                    value = executeKeyWords(instruction, c);
                 }
+                logic.setValue(value.getValue());
                 return logic;
     
             } else {
@@ -766,4 +801,5 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         return logic;
     }
     
+        
 }
