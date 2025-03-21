@@ -121,6 +121,9 @@ public class Parser {
             case 8: 
                 System.out.println("Error: Funcion ya declarada con el mismo nombre");
                 break;
+            case 9: 
+                System.out.println("Error: QUOTE sin argumentos");
+                break;
         
             default:
                 System.out.println("Error: Sintaxis de Lisp incorrecta");
@@ -150,31 +153,31 @@ public class Parser {
                         exitForErrorSintax(8);
                     }else{
                         defunNew.setNombre(tokens.get(i+2));
-                    if(tokens.get(i+3).equals("(")){
-                        i=i+4;
-                        ArrayList<String> parametros = new ArrayList<>();
-                        while(!tokens.get(i).equals(")")){
-                            parametros.add(tokens.get(i));
-                            i++;
-                        }
-                        ArrayList<String> cuerpo = new ArrayList<>();
-                        int contadorBrackets = 0;
-                        i++;
-                        while(contadorBrackets>=0){
-                            if(tokens.get(i).equals("(")){
-                                contadorBrackets++;
-                            }else if(tokens.get(i).equals(")")){
-                                contadorBrackets--;
-                            }
-                            if (contadorBrackets>=0){
-                                cuerpo.add(tokens.get(i));
+                        if(tokens.get(i+3).equals("(")){
+                            i=i+4;
+                            ArrayList<String> parametros = new ArrayList<>();
+                            while(!tokens.get(i).equals(")")){
+                                parametros.add(tokens.get(i));
                                 i++;
                             }
-                        }
-                        defunNew.setParametros(parametros);
-                        defunNew.setCuerpo(cuerpo);
-                        functions.add(defunNew);
-                    }
+                            ArrayList<String> cuerpo = new ArrayList<>();
+                            int contadorBrackets = 0;
+                            i++;
+                            while(contadorBrackets>=0){
+                                if(tokens.get(i).equals("(")){
+                                    contadorBrackets++;
+                                }else if(tokens.get(i).equals(")")){
+                                    contadorBrackets--;
+                                }
+                                if (contadorBrackets>=0){
+                                    cuerpo.add(tokens.get(i));
+                                    i++;
+                                }
+                            }
+                            defunNew.setParametros(parametros);
+                            defunNew.setCuerpo(cuerpo);
+                            functions.add(defunNew);
+                        } 
                     
                         globalEnviroment=0;
                     }
@@ -223,17 +226,21 @@ public class Parser {
             
             // ArrayList para guardar los parámetros
             ArrayList<String> parametrosSend = new ArrayList<>();
+            
             Defun defunRun =searchDefun(functions, tokens.get(logic.getCount()));
+
             logic.increment(1);
             // Leemos los tokens hasta encontrar un paréntesis de cierre
             while (!tokens.get(logic.getCount()).equals(")")) {
-                // Validar los parametros y setearlos como variables
-                if (logic.getVairablesLocales().getValue(tokens.get(logic.getCount()))!=null && globalEnviroment!=0){
+                if (isNumber(tokens.get(logic.getCount() ))) {
+                    parametrosSend.add(tokens.get(logic.getCount() ));
+                }else if (logic.getVairablesLocales().getValue(tokens.get(logic.getCount()))!=null && globalEnviroment!=0){
                     parametrosSend.add(logic.getVairablesLocales().getValue(tokens.get(logic.getCount())));
-                }else if(variables.getValue(tokens.get(logic.getCount()))!=null){
-                    parametrosSend.add(variables.getValue(tokens.get(logic.getCount())));
-                }else{
-                    parametrosSend.add(tokens.get(logic.getCount()));
+                }else if(variables.getValue(tokens.get(logic.getCount() ))!=null){
+                    parametrosSend.add(variables.getValue(tokens.get(logic.getCount() )));
+                }else if(tokens.get(logic.getCount() ).equals("(")){
+                    logic = executeKeyWords(tokens, logic);
+                    parametrosSend.add(logic.getValue());
                 }
                 logic.increment(1);
             }
@@ -245,8 +252,6 @@ public class Parser {
             // Avanzamos el contador para saltar el paréntesis de cierre
             
             logic = defun(defunRun, logic,parametrosSend);
-            
-            System.out.println("funcion finalizada");
 
         // Si no es una función, verificar si es un keyword
             
@@ -266,7 +271,6 @@ public class Parser {
                 case "cond":
                     logic = cond(tokens, logic);
                     logic.increment(1);
-                    System.out.println("valor retorno cont  "+logic.getValue());
                     break;
                 case "atom":
                     logic=atom(tokens, logic);
@@ -280,6 +284,7 @@ public class Parser {
                 case "<":
                 case ">":
                     logic=predicates(tokens,logic);
+                    
                     break;
                     
                     
@@ -332,7 +337,7 @@ public class Parser {
             }  
         // Si no tiene argumentos, mostrar error    
         } else {
-            System.out.println("Error: quote sin argumento");    
+            exitForErrorSintax(9);  
         }
         // Asignar la expresión al objeto Quote
         quote.setExpresion(quoteBodyBuilder);
@@ -415,7 +420,6 @@ public class Parser {
         //asignar el contenido al objeto quote
 
         atom.setExpresion(atomContent);
-        System.out.println(atom.isAtom());
         logic.setValueBool(atom.isAtom());
         logic.increment(i - logic.getCount());
 
@@ -498,7 +502,6 @@ public class Parser {
         //Asignar el contenido al objeto quote
         
         atom.setExpresion(atomContent);
-        System.out.println(atom.isList());
         logic.setValueBool(atom.isList());
         logic.increment(i - logic.getCount());
 
@@ -576,7 +579,6 @@ public class Parser {
         // Actualizar el contador
         logic.increment(i - logic.getCount());
         logic.setValue(result.toString());
-        System.out.println("reultado suma: "+result);
         return logic;
     }
 
@@ -689,12 +691,6 @@ public class Parser {
             exitForErrorSintax(4); // Manejo de error sintáctico
         }
     
-        // Opcional: Imprimir las variables para debugging
-        System.out.println("Variables:");
-        variables.printVariables();
-        System.out.println("Variables locales:");
-        logic.getVairablesLocales().printVariables();
-    
         return logic;
     }
 
@@ -724,6 +720,7 @@ public class Parser {
 
     public Counter defun(Defun defunRun, Counter logic, ArrayList<String> parametros){
         globalEnviroment++; 
+        System.out.println("Ejecutando función");
         Counter logicD = new Counter();
         for (int j = 0; j < parametros.size(); j++) {
             
@@ -736,15 +733,12 @@ public class Parser {
         for(int j=0; j<parametros.size(); j++){
             defunRun.addVariable(defunRun.getParametros().get(j),parametros.get(j));
         }
-        System.out.println("funcion interns");
         while(logicD.getCount()<tokensD.size()){
-            System.out.println(logicD.getCount()+""+tokensD.get(logicD.getCount()+1));
 
             //manejar funcion interna
             if (!tokensD.get(logicD.getCount()).equals("(")){
                 exitForErrorSintax(1);
             }else if(KEYWORDS.contains(tokensD.get(logicD.getCount()+1))|| searchDefun(functions, tokensD.get(logicD.getCount()+1))!=null){
-                System.out.println(tokensD.get(logicD.getCount())+ " counter :"+logicD.getCount());
                 logicD=executeKeyWords(tokensD, logicD);  
                 logicD.increment(1);
             }
@@ -824,7 +818,6 @@ public class Parser {
                         instruccion.add(tokens.get(logic.getCount()));
                         logic.increment(1);
                         instructionList.add(instruccion);
-                        System.out.println(instructionList);
                     }
                 }
     
@@ -842,7 +835,6 @@ public class Parser {
 
                         if(instructionList.getLast().size() == 1){
                             String token = instructionList.getLast().get(0);
-                            System.out.println(token);
                             if(isNumber(token)){
                                 value.setValue(token);
 
@@ -867,7 +859,6 @@ public class Parser {
                                 Counter c = new Counter();
                                 c.setVairablesLocales(logic.getVairablesLocales());
                                 value = executeKeyWords(instruction, c);
-                                System.out.println("valor retorno xd : "+value.getValue());  
                             }
 
                         }

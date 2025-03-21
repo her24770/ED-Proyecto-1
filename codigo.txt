@@ -1,16 +1,25 @@
 
-(setq x 6)
+(setq x 5)
 
-(defun factorial (n)
+(defun fibonacci (n)
   (cond
-    ((equal n 0) 1)
-    (t 
-    (setq m (- n 1))
-    (* n (factorial m)
-    )
+    ((equal n 0) 0)           
+    ((equal n 1) 1)             
+    (t (+ (fibonacci (- n 1))
+          (fibonacci (- n 2))
+      )
     )
   )
 ) 
 
-(factorial x)
 
+
+(defun factorial (n)
+  (cond
+    ((equal n 0) 1)      
+    (t (* n (factorial (- n 1))))
+  )
+)  
+
+
+(factorial (fibonacci x))

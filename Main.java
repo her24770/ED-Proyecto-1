@@ -53,7 +53,6 @@ public class Main {
         } catch (IOException e) {
             System.out.println("Error en lectura del documento: " + e.getMessage());
         }
-        System.err.println(codeText);
         return codeText;
     }
 }
