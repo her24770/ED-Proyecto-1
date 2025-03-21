@@ -1,6 +1,9 @@
+/**
+ * Clase que representa una expresión QUOTE, y permite identificar si es un átomo o una lista
+ */
 public class Quote {
 
-    private StringBuilder expresion;
+    private StringBuilder expresion; // Expresión a guardar
 
     // Constructor
     public Quote() {
@@ -16,6 +19,11 @@ public class Quote {
         this.expresion = expresion;
     }
 
+    /**
+     * Método para identificar si la expresión es un átomo
+     * @return true si es un átomo, false si no
+     */
+
     public boolean isAtom() {
         String exp = expresion.toString().trim();
     
@@ -30,6 +38,10 @@ public class Quote {
         return elements.length == 1 && !elements[0].startsWith("(");
     }
 
+    /**
+     * Método para identificar si la expresión es una lista
+     * @return true si es una lista, false si no
+     */
 
     public boolean isList(){
         String exp = expresion.toString().trim();
@@ -47,14 +59,19 @@ public class Quote {
     }
 
 
-    // Setter para asignar una nueva expresión
-
-    // Método toString para representar la expresión como una cadena
+    /** 
+     * Método para obtener la expresión QUOTE en forma de lista
+     * @return expresión QUOTE en forma de lista
+     */
     @Override
     public String toString() {
         return "'" + expresion;  // El prefijo ' indica que es una expresión QUOTE
     }
 
+    /**
+     * Método para obtener la expresión QUOTE en forma de átomo
+     * @return expresión QUOTE en forma de átomo
+     */
     public String toAtom(){
         return "" + expresion;
     }
