@@ -1,5 +1,10 @@
 import java.util.List;
 
+/**
+ * Clase que realiza las operaciones matematicas
+ * @author 
+ */
+
 public class Calculator {
 
     

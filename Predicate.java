@@ -1,8 +1,20 @@
 import java.util.List;
 
+/**
+ * Clase que define un predicado y evalua si se cumple
+ */
+
 public class Predicate {
 
+    /**
+     * Evalua si se cumple el predicado
+     * @param operator operador del predicado
+     * @param values valores a evaluar
+     * @return true si se cumple, false si no
+     */
+
     public boolean evaluate(String operator, List<String> values) {
+        
         switch (operator) {
             case "equal":
                 // Verifica si todos los valores son iguales
@@ -43,7 +55,11 @@ public class Predicate {
         }
     }
 
-    //funcion para verificar si es un numero
+    /**
+    * Verifica si un string es un número
+    * @param input string a verificar
+    * @return true si es un número, false si no
+    */
     public static boolean isNumber(String input) {
         if (input == null || input.isEmpty()) {
             return false;

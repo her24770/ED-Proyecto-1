@@ -3,7 +3,23 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
+/**
+ * Universidad del Valle de Guatemala
+ * Algoritmos y Estructura de Datos
+ * Seccion: 30
+ * Proyecto No.1 
+ * Interprete del lenguaje de programacion LISP 
+ * @author Josue Hernandez 24770, Oscar Rompich 24880, Gabriel Hidalgo 24939
+ * Ultima edición: 20-03-2025
+ */
+
 public class Main {
+    
+    /**
+     * Metodo principal que ejecuta el programa
+     * @param args
+     */ 
     public static void main(String[] args) {
         ArrayList<String> tokens = new ArrayList<>();
         
@@ -20,6 +36,12 @@ public class Main {
 
 
     }
+
+    /**
+     * Metodo que lee un archivo de texto
+     * @param path
+     * @return String con el contenido del archivo
+     */ 
 
     public static String readFile(String path) {
         String codeText="";
