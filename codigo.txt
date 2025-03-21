@@ -1,16 +1,16 @@
 
-(setq x 2)
+(setq x 6)
 
 (defun factorial (n)
   (cond
-    ((equal n 0) 1)      
+    ((equal n 0) 1)
     (t 
-      (setq n (- n 1))
-      (factorial n)
+    (setq m (- n 1))
+    (* n (factorial m)
+    )
     )
   )
-)
-
-
+) 
 
 (factorial x)
+
