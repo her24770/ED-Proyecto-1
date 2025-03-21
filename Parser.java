@@ -145,7 +145,7 @@ public class Parser {
                     globalEnviroment=0;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
-                    counterGlobal=executeKeyWords(tokens, counterGlobal);                
+                    counterGlobal=executeKeyWords(tokens, counterGlobal);            
                     i=counterGlobal.getCount();
                     
                 }else{
@@ -275,6 +275,8 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         Counter result = new Counter();
         Quote atom = new Quote();
         StringBuilder atomContent = new StringBuilder();
+        
+        
 
         if (tokens.get(i).equals("(" ) && searchDefun(functions, tokens.get(i+1)) == null) {
 
@@ -306,7 +308,9 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
             }
 
         // si coincide con una variable
-
+        }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
+            atomContent.append(logic.getVairablesLocales().getValue(tokens.get(i)));
+            i++;
         }else if (variables.getValue(tokens.get(i))!=null){
             atomContent.append(variables.getValue(tokens.get(i)));
             i++;
@@ -315,41 +319,45 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
 
         // es una funcion
         else if (tokens.get(i).equals("(") && searchDefun(functions, tokens.get(i+1))!=null){
-            i++;
-            Defun defunsearch = searchDefun(functions, tokens.get(i));
-            if (defunsearch!=null){
-                logic.setCount(i);
-                logic = defun(defunsearch, logic, tokens);
-                atomContent.append(logic.getValue());
-                i = logic.getCount() + 1;
-            }
+            StringBuilder functionContent = new StringBuilder();
+
+            logic.setCount(i);
+                    logic = executeKeyWords(tokens, logic);
+                    functionContent.append(logic.getValue());
+                    i = logic.getCount() + 1;
+                    logic.increment(1);
+
+            atomContent.append(functionContent);
+
         }
-        
+
         atom.setExpresion(atomContent);
         System.out.println(atom.isAtom());
-        System.out.println("CONTENIDOOOO: " + atom.getExpresion());
+        logic.setValueBool(atom.isAtom());
         logic.increment(i - logic.getCount());
 
         return logic;
 
     }
 
-    public Counter list (ArrayList<String> tokens, Counter logic){
+    public Counter list(ArrayList<String> tokens, Counter logic){
         int i = logic.getCount() + 2;  
         Counter result = new Counter();
         Quote atom = new Quote();
         StringBuilder atomContent = new StringBuilder();
 
 
-        if (tokens.get(i).equals("(")) {
+        if (tokens.get(i).equals("(" ) && searchDefun(functions, tokens.get(i+1)) == null) {
 
             if (KEYWORDS.contains(tokens.get(i+1))) {
+                
                 result.setCount(i);
                 result = executeKeyWords(tokens, result);
                 atomContent.append(result.getValue());
                 i = result.getCount() + 1;
-
-            } else {
+                
+            }
+            else {
 
                 atomContent.append(tokens.get(i)).append(" ");
 
@@ -370,28 +378,32 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 }
                 
             }
+        }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
+            atomContent.append(logic.getVairablesLocales().getValue(tokens.get(i)));
+            i++;
         }else if (variables.getValue(tokens.get(i))!=null){
             atomContent.append(variables.getValue(tokens.get(i)));
             i++;
 
         }
         // es una funcion
-        else if (searchDefun(functions, tokens.get(i))!=null){
-            i++;
-
-            Defun defunsearch = searchDefun(functions, tokens.get(i));
-            if (defunsearch!=null){
-                logic.setCount(i);
-                logic = defun(defunsearch, logic, tokens);
-                atomContent.append(logic.getValue());
-                i = logic.getCount() + 1;
-            }
+        else if (tokens.get(i).equals("(") && searchDefun(functions, tokens.get(i+1))!=null){
             
+            StringBuilder functionContent = new StringBuilder();
+
+            logic.setCount(i);
+                    logic = executeKeyWords(tokens, logic);
+                    functionContent.append(logic.getValue());
+                    i = logic.getCount() + 1;
+                    logic.increment(1);
+
+            atomContent.append(functionContent);
+
         }
         
         atom.setExpresion(atomContent);
         System.out.println(atom.isList());
-        System.out.println("Contenido: " + atom.getExpresion());
+        logic.setValueBool(atom.isList());
         logic.increment(i - logic.getCount());
 
         return logic;
@@ -432,8 +444,10 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                     i=counter.getCount()+1;
                 }
                 
-            }
-            else if (variables.getValue(tokens.get(i))!=null){
+            }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
+                values.add(logic.getVairablesLocales().getValue(tokens.get(i)));
+                i++;
+            }else if (variables.getValue(tokens.get(i))!=null){
                 values.add(variables.getValue(tokens.get(i)));
                 i++;
             }
@@ -602,6 +616,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         }
         logic.setValue(logicD.getValue());
         globalEnviroment--; 
+        logic.setVairablesLocales(new SetQ());
         return logic;
 
     } 
