@@ -275,6 +275,8 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         Counter result = new Counter();
         Quote atom = new Quote();
         StringBuilder atomContent = new StringBuilder();
+        
+        
 
         if (tokens.get(i).equals("(" ) && searchDefun(functions, tokens.get(i+1)) == null) {
 
@@ -306,7 +308,9 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
             }
 
         // si coincide con una variable
-
+        }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
+            atomContent.append(logic.getVairablesLocales().getValue(tokens.get(i)));
+            i++;
         }else if (variables.getValue(tokens.get(i))!=null){
             atomContent.append(variables.getValue(tokens.get(i)));
             i++;
@@ -334,7 +338,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
 
     }
 
-    public Counter list (ArrayList<String> tokens, Counter logic){
+    public Counter list(ArrayList<String> tokens, Counter logic){
         int i = logic.getCount() + 2;  
         Counter result = new Counter();
         Quote atom = new Quote();
@@ -370,6 +374,9 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 }
                 
             }
+        }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
+            atomContent.append(logic.getVairablesLocales().getValue(tokens.get(i)));
+            i++;
         }else if (variables.getValue(tokens.get(i))!=null){
             atomContent.append(variables.getValue(tokens.get(i)));
             i++;
@@ -432,8 +439,10 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                     i=counter.getCount()+1;
                 }
                 
-            }
-            else if (variables.getValue(tokens.get(i))!=null){
+            }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
+                values.add(logic.getVairablesLocales().getValue(tokens.get(i)));
+                i++;
+            }else if (variables.getValue(tokens.get(i))!=null){
                 values.add(variables.getValue(tokens.get(i)));
                 i++;
             }
@@ -602,6 +611,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         }
         logic.setValue(logicD.getValue());
         globalEnviroment--; 
+        logic.setVairablesLocales(new SetQ());
         return logic;
 
     } 
