@@ -276,15 +276,15 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         Quote atom = new Quote();
         StringBuilder atomContent = new StringBuilder();
 
-        if (tokens.get(i).equals("(")) {
+        if (tokens.get(i).equals("(" ) && searchDefun(functions, tokens.get(i+1)) == null) {
 
             if (KEYWORDS.contains(tokens.get(i+1))) {
                 result.setCount(i);
                 result = executeKeyWords(tokens, result);
                 atomContent.append(result.getValue());
                 i = result.getCount() + 1;
-
-            } else {
+            }
+            else {
 
                 atomContent.append(tokens.get(i)).append(" ");
 
@@ -303,14 +303,31 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                     atomContent.append(token).append(" ");
                     i++;
                 }
-                
+            }
+
+        // si coincide con una variable
+
+        }else if (variables.getValue(tokens.get(i))!=null){
+            atomContent.append(variables.getValue(tokens.get(i)));
+            i++;
+
+        }
+
+        // es una funcion
+        else if (tokens.get(i).equals("(") && searchDefun(functions, tokens.get(i+1))!=null){
+            i++;
+            Defun defunsearch = searchDefun(functions, tokens.get(i));
+            if (defunsearch!=null){
+                logic.setCount(i);
+                logic = defun(defunsearch, logic, tokens);
+                atomContent.append(logic.getValue());
+                i = logic.getCount() + 1;
             }
         }
         
-        
         atom.setExpresion(atomContent);
         System.out.println(atom.isAtom());
-        System.out.println("Contenido: " + atom.getExpresion());
+        System.out.println("CONTENIDOOOO: " + atom.getExpresion());
         logic.increment(i - logic.getCount());
 
         return logic;
@@ -353,8 +370,24 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 }
                 
             }
+        }else if (variables.getValue(tokens.get(i))!=null){
+            atomContent.append(variables.getValue(tokens.get(i)));
+            i++;
+
         }
-        
+        // es una funcion
+        else if (searchDefun(functions, tokens.get(i))!=null){
+            i++;
+
+            Defun defunsearch = searchDefun(functions, tokens.get(i));
+            if (defunsearch!=null){
+                logic.setCount(i);
+                logic = defun(defunsearch, logic, tokens);
+                atomContent.append(logic.getValue());
+                i = logic.getCount() + 1;
+            }
+            
+        }
         
         atom.setExpresion(atomContent);
         System.out.println(atom.isList());
@@ -363,6 +396,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
 
         return logic;
     }
+
 
     public Counter arithmeticOperation(ArrayList<String> tokens, Counter logic) {
         String operator = tokens.get(logic.getCount() + 1);
