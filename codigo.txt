@@ -1,8 +1,16 @@
-(defun sumas(x y)
-  (+ 2 1))
-  
-(setq x 3)
 
-(+ (- (sumas 2 1) x) 2 5 (* 2 (sumas 1 2)))
-(* x (sumas 2 1) 2)
-(* x (sumas 2 1 ) (+ 1 2))
+(setq x 2)
+
+(defun factorial (n)
+  (cond
+    ((equal n 0) 1)      
+    (t 
+      (setq n (- n 1))
+      (factorial n)
+    )
+  )
+)
+
+
+
+(factorial x)

@@ -175,7 +175,9 @@ public class Parser {
             // Leemos los tokens hasta encontrar un paréntesis de cierre
             while (!tokens.get(logic.getCount()).equals(")")) {
                 // Validar los parametros y setearlos como variables
-                if(variables.getValue(tokens.get(logic.getCount()))!=null){
+                if (logic.getVairablesLocales().getValue(tokens.get(logic.getCount()))!=null && globalEnviroment!=0){
+                    parametrosSend.add(logic.getVairablesLocales().getValue(tokens.get(logic.getCount())));
+                }else if(variables.getValue(tokens.get(logic.getCount()))!=null){
                     parametrosSend.add(variables.getValue(tokens.get(logic.getCount())));
                 }else{
                     parametrosSend.add(tokens.get(logic.getCount()));
@@ -487,12 +489,15 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         while (logic.getCount() < tokens.size() && !tokens.get(logic.getCount() ).equals(")")) {
             if (isNumber(tokens.get(logic.getCount() ))) {
                 values.add(tokens.get(logic.getCount() ));
+            }else if (logic.getVairablesLocales().getValue(tokens.get(logic.getCount()))!=null && globalEnviroment!=0){
+                values.add(logic.getVairablesLocales().getValue(tokens.get(logic.getCount())));
             }else if(variables.getValue(tokens.get(logic.getCount() ))!=null){
                 values.add(variables.getValue(tokens.get(logic.getCount() )));
             }else if(tokens.get(logic.getCount() ).equals("(")){
                 logic = executeKeyWords(tokens, logic);
                 values.add(logic.getValue());
             }
+            
             
             logic.increment(1);;
         }
@@ -501,12 +506,10 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         if (logic.getCount()  >= tokens.size() || !tokens.get(logic.getCount() ).equals(")")) {
             exitForErrorSintax(2); // Manejo de error sintáctico
         }
-
         // Evaluar los valores con el operador
         Predicate predicate = new Predicate();
         boolean result = predicate.evaluate(operator, values);
         logic.setValueBool(result);
-        System.out.println(result);
         return logic;
     }
 
@@ -593,8 +596,10 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         globalEnviroment++; 
         Counter logicD = new Counter();
         for (int j = 0; j < parametros.size(); j++) {
+            
             logicD.addVariableLocal(defunRun.getParametros().get(j), parametros.get(j));
         }
+        
 
         ArrayList<String> tokensD = defunRun.getCuerpo();
         //aregar parametros como variables locles
@@ -616,7 +621,6 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         }
         logic.setValue(logicD.getValue());
         globalEnviroment--; 
-        logic.setVairablesLocales(new SetQ());
         return logic;
 
     } 
@@ -629,6 +633,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
      */
     public Counter cond(ArrayList<String> tokens, Counter logic){
         Counter value = new Counter();
+        value.setVairablesLocales(logic.getVairablesLocales());
         logic.increment(2); // Saltar lo verificado en executeKeyWords
     
         // Verificar estructura de COND (doble paréntesis)
@@ -695,7 +700,10 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
     
                 // Evaluar la condición
                 Counter localCounter = new Counter();
+                
+                localCounter.setVairablesLocales(logic.getVairablesLocales());
                 executeKeyWords(condition, localCounter);
+
                 Boolean doExecute = localCounter.isValueBool();
     
                 if(doExecute){
@@ -727,6 +735,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                         }else{
                             for(ArrayList<String> instruction : instructionList){
                                 Counter c = new Counter();
+                                c.setVairablesLocales(logic.getVairablesLocales());
                                 value = executeKeyWords(instruction, c);
                                 System.out.println("valor retorno xd : "+value.getValue());  
                             }
@@ -802,6 +811,7 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 // Ejecutar cada instrucción
                 for(ArrayList<String> instruction : instructionList){
                     Counter c = new Counter();
+                    c.setVairablesLocales(logic.getVairablesLocales());
                     value = executeKeyWords(instruction, c);
                 }
                 logic.setValue(value.getValue());
