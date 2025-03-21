@@ -1,13 +1,21 @@
 import java.util.HashMap;
 
+/**
+ * Clase que define un conjunto de variables
+ */
+
 public class SetQ {
-    private HashMap<String, String> variables;
+    private HashMap<String, String> variables; // Variables del conjunto
 
     public SetQ() {
         this.variables = new HashMap<>();
     }
 
-    // Método para asignar valores a las variables
+    /**
+     * Metodo que asigna un valor a una variable
+     * @param variable
+     * @param value
+     */
     public void assign(String variable, String value) {
         variables.put(variable, value);
     }

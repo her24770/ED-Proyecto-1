@@ -7,21 +7,36 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/** 
+ * Clase que se encarga de tokenizar y ejecutar el código de Lisp
+ * 
+ */
+
 public class Parser {
+
+    // Lista de palabras clave
 
     List<String> KEYWORDS = new ArrayList<>(Arrays.asList(
         "<", ">", "+", "-", "*", "/", "^", "(", ")", "'","=", 
         "defun", "quote", "setq", "cond", "atom", "list", "equal"
     ));
 
+    // Lista de tokens del código
     ArrayList<String> tokens = new ArrayList<>();
+    // Lista de funciones globales
     ArrayList<Defun> functions = new ArrayList<>();
+    // Conjunto de variables globales
     SetQ variables = new SetQ();
 
 
     
     
-    //funcion para verificar si los parentesis estan cerrados
+    /**
+     * Algoritmo de balanceo de paréntesis
+     * Verifica si un código tiene la misma cantidad de paréntesis de apertura y cierre
+     * @param code código a verificar
+     * @return true si está balanceado, false si no
+     */
     public boolean cierreParentesis(String code) {
         Stack<Character> pila = new Stack<>();
     
@@ -37,7 +52,12 @@ public class Parser {
         return pila.isEmpty(); 
     }
 
-    //funcion para tokenizar
+    /**
+     * Función para tokenizar un código de Lisp
+     * @param code código a tokenizar
+     * @return lista con los tokens
+     */
+
     public ArrayList<String> tokenize(String code) {
 
         ArrayList<String> tokens = new ArrayList<>();
@@ -52,7 +72,11 @@ public class Parser {
         return tokens;
     }
 
-    //funcion para verificar si es un numero
+    /**
+    * Verifica si un string es un número
+    * @param input string a verificar
+    * @return true si es un número, false si no
+    */
     public static boolean isNumber(String input) {
         if (input == null || input.isEmpty()) {
             return false;
@@ -64,6 +88,11 @@ public class Parser {
             return false;
         }
     }
+
+    /**
+     * Función para manejar errores de sintaxis
+     * @param typeError tipo de error
+     */
     
     
     public static void exitForErrorSintax(int typeError){
@@ -100,11 +129,19 @@ public class Parser {
         System.exit(0);
     }
 
+    // Variable para controlar el entorno global
+
     int globalEnviroment = 0;
+
+
+    /**
+     * Función para ejecutar el código de Lisp
+     * @param tokens lista de tokens
+     */
 
     public void execute(ArrayList<String> tokens) {
         for(int i=0; i<tokens.size(); i++){
-            
+            // Verificar si es una función y definir fuera del entorno global
             if(tokens.get(i).equals("(")&& globalEnviroment==0){
                 globalEnviroment=1;
                 if(tokens.get(i+1).equals("defun")){
@@ -141,30 +178,46 @@ public class Parser {
                     
                         globalEnviroment=0;
                     }
+
+                // si no es una funcion, ejecutar los keywords
                 }else if(KEYWORDS.contains(tokens.get(i+1)) || searchDefun(functions, tokens.get(i+1))!=null ){
                     globalEnviroment=0;
                     Counter counterGlobal = new Counter();
                     counterGlobal.setCount(i);
                     counterGlobal=executeKeyWords(tokens, counterGlobal);            
                     i=counterGlobal.getCount();
-                    
+
+                // No se encontró una función o keyword
                 }else{
                     exitForErrorSintax(3);
                 }
+            // Ya se ejecuto todo el código
             }else if(i>=tokens.size()){
                 exitForErrorSintax(7);
-
+            // No se encontró un paréntesis de apertura
             }else{
                 exitForErrorSintax(1); 
             }
         }
     }
 
+
+    /**
+     * Función para ejecutar los keywords de la lista de palabras clave
+     * @param tokens lista de tokens
+     * @param logic contador de tokens y logística
+     * @return contador actualizado con valor y posición
+     */
+
     public Counter executeKeyWords(ArrayList<String> tokens, Counter logic){
+
+        // Verificar si se ha llegado al final del código
         
         if(logic.getCount()>=tokens.size()){
             exitForErrorSintax(7);
         }
+
+        // Verificar si es una función
         if (searchDefun(functions, tokens.get(logic.getCount()+1))!=null){
             logic.increment(1);
             
@@ -194,6 +247,8 @@ public class Parser {
             logic = defun(defunRun, logic,parametrosSend);
             
             System.out.println("funcion finalizada");
+
+        // Si no es una función, verificar si es un keyword
             
         }else{
             switch (tokens.get(logic.getCount() + 1)) {
@@ -243,10 +298,22 @@ public class Parser {
         return logic;
     }
 
+    /**
+     * Funcion para definir un QUOTE.
+     * @param tokens lista de tokens
+     * @param logic contador de tokens y logistica
+     * @return contador actualizado con valor y posición
+     */
+
     public Counter quote(ArrayList<String> tokens, Counter logic) {
+        // Crear un StringBuilder para guardar la expresión
         StringBuilder quoteBodyBuilder = new StringBuilder();
+        // Crear un objeto Quote para guardar la expresión
         Quote quote = new Quote();
+        // Avanzar el contador para saltar el paréntesis de apertura
         int i = logic.getCount() + 2; 
+
+        // Verificar si el QUOTE tiene argumentos
         if (tokens.get(i).equals("(")) {
             int parentesisHandler = 1;
             quoteBodyBuilder.append(tokens.get(i)).append(" ");
@@ -262,24 +329,34 @@ public class Parser {
                 
                 quoteBodyBuilder.append(token).append(" ");
                 i++;
-            }      
+            }  
+        // Si no tiene argumentos, mostrar error    
         } else {
             System.out.println("Error: quote sin argumento");    
         }
+        // Asignar la expresión al objeto Quote
         quote.setExpresion(quoteBodyBuilder);
         logic.setValue(quote.toAtom());
         logic.increment(i - logic.getCount());
         return logic;
     }
 
-public Counter atom(ArrayList<String> tokens, Counter logic) {
+
+    /**
+     * Función para definir un Atomo
+     * @param tokens lista de tokens
+     * @param logic contador de tokens y logistica
+     * @return contador actualizado con valor y posición
+     */
+
+    public Counter atom(ArrayList<String> tokens, Counter logic) {
+
+        // Avanzar el contador para saltar el paréntesis de apertura
         int i = logic.getCount() + 2;  
         Counter result = new Counter();
         Quote atom = new Quote();
         StringBuilder atomContent = new StringBuilder();
         
-        
-
         if (tokens.get(i).equals("(" ) && searchDefun(functions, tokens.get(i+1)) == null) {
 
             if (KEYWORDS.contains(tokens.get(i+1))) {
@@ -309,10 +386,12 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 }
             }
 
-        // si coincide con una variable
+        // si es una variable 
         }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
             atomContent.append(logic.getVairablesLocales().getValue(tokens.get(i)));
             i++;
+
+        // si es una variable global
         }else if (variables.getValue(tokens.get(i))!=null){
             atomContent.append(variables.getValue(tokens.get(i)));
             i++;
@@ -333,6 +412,8 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
 
         }
 
+        //asignar el contenido al objeto quote
+
         atom.setExpresion(atomContent);
         System.out.println(atom.isAtom());
         logic.setValueBool(atom.isAtom());
@@ -342,11 +423,20 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
 
     }
 
+    /**
+     * Función para definir un List
+     * @param tokens lista de tokens
+     * @param logic contador de tokens y logistica
+     * @return contador actualizado con valor y posición
+     */
+
     public Counter list(ArrayList<String> tokens, Counter logic){
+        // Avanzar el contador para saltar el paréntesis de apertura
         int i = logic.getCount() + 2;  
         Counter result = new Counter();
         Quote atom = new Quote();
         StringBuilder atomContent = new StringBuilder();
+
 
 
         if (tokens.get(i).equals("(" ) && searchDefun(functions, tokens.get(i+1)) == null) {
@@ -380,9 +470,11 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
                 }
                 
             }
+            // si es una variable
         }else if (logic.getVairablesLocales().getValue(tokens.get(i))!=null&&globalEnviroment!=0){
             atomContent.append(logic.getVairablesLocales().getValue(tokens.get(i)));
             i++;
+            // si es una variable global
         }else if (variables.getValue(tokens.get(i))!=null){
             atomContent.append(variables.getValue(tokens.get(i)));
             i++;
@@ -402,6 +494,8 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
             atomContent.append(functionContent);
 
         }
+
+        //Asignar el contenido al objeto quote
         
         atom.setExpresion(atomContent);
         System.out.println(atom.isList());
@@ -411,6 +505,13 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         return logic;
     }
 
+
+    /**
+     * metodo para definir una operacion aritmetica  
+     * @param tokens lista de tokens
+     * @param logic contador de tokens y logistica
+     * @return contador actualizado con valor y posición
+     */
 
     public Counter arithmeticOperation(ArrayList<String> tokens, Counter logic) {
         String operator = tokens.get(logic.getCount() + 1);
@@ -479,6 +580,13 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         return logic;
     }
 
+    /**
+     * metodo para definir un predicado
+     * @param tokens lista de tokens
+     * @param logic contador de tokens y logistica
+     * @return contador actualizado con valor y posición
+     */
+
 
     public Counter predicates(ArrayList<String> tokens, Counter logic) {
         String operator = tokens.get(logic.getCount() + 1);
@@ -513,6 +621,13 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         return logic;
     }
 
+    /**
+     * Función para definir un SETQ
+     * @param tokens lista de tokens
+     * @param logic contador de tokens y logística
+     * @return contador actualizado con valor y posición
+     */
+
     public Counter setq(ArrayList<String> tokens, Counter logic) {
                 // String value = "";
         // Verificar que el primer token después de "setq" sea una variable
@@ -530,16 +645,16 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
             String value = tokens.get(logic.getCount()); // Valor de la variable
             
              //validar que no sea variables o funcion
-             
+            
             if (tokens.get(logic.getCount()).equals("(")) {
-                 Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
+                Defun defunsearch = searchDefun(functions, tokens.get(logic.getCount()+1));
                 if(KEYWORDS.contains(tokens.get(logic.getCount()+1))){
-                     logic = executeKeyWords(tokens, logic);
-                     value=logic.getValue();
-                 }else if (defunsearch!=null){
-                     logic = executeKeyWords(tokens, logic);
-                     value=logic.getValue();
-                 }
+                    logic = executeKeyWords(tokens, logic);
+                    value=logic.getValue();
+                }else if (defunsearch!=null){
+                    logic = executeKeyWords(tokens, logic);
+                    value=logic.getValue();
+                }
                 
             }
 
@@ -583,6 +698,13 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         return logic;
     }
 
+    /**
+     * Función para buscar una función en la lista de funciones
+     * @param functions lista de funciones
+     * @param nombre nombre de la función a buscar
+     * @return función encontrada
+     */
+
     public Defun searchDefun(ArrayList<Defun> functions, String nombre) {
         for (Defun defun : functions) {
             if(defun.getNombre().equals(nombre)) {
@@ -591,6 +713,14 @@ public Counter atom(ArrayList<String> tokens, Counter logic) {
         }
         return null;
     }
+
+    /**
+     * Función para definir una función
+     * @param defunRun función a definir
+     * @param logic contador de tokens y logística
+     * @param parametros lista de parámetros
+     * @return contador actualizado con valor y posición
+     */
 
     public Counter defun(Defun defunRun, Counter logic, ArrayList<String> parametros){
         globalEnviroment++; 
