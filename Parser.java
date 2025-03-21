@@ -188,7 +188,9 @@ public class Parser {
                 case "setq":
                     logic =setq(tokens, logic);
                     break;
-                    
+
+                
+                case "'":    
                 case "quote":
 
                     logic = quote(tokens, logic);
@@ -204,7 +206,12 @@ public class Parser {
                     System.out.println(tokens.get(logic.getCount()+1));
                     break;
                 case "atom":
+                    logic=atom(tokens, logic);
+                    break;
+
                 case "list":
+                    logic=list(tokens, logic);
+                    break;
 
                 case "equal":
                 case "<":
@@ -252,51 +259,102 @@ public class Parser {
             System.out.println("Error: quote sin argumento");    
         }
         quote.setExpresion(quoteBodyBuilder);
-        System.out.print(quote.toString());
-        logic.increment(i - logic.getCount());
         logic.setValue(quote.toAtom());
+        logic.increment(i - logic.getCount());
         return logic;
     }
 
-    public Counter atom(ArrayList<String> tokens, Counter logic, int opcion) {
-        int i = logic.getCount() + 2; 
-        Quote quote = new Quote();
-        
-        if (i < tokens.size() && (tokens.get(i).equals("quote") || tokens.get(i).equals("'"))) {
-            i++; 
+public Counter atom(ArrayList<String> tokens, Counter logic) {
+        int i = logic.getCount() + 2;  
+        Counter result = new Counter();
+        Quote atom = new Quote();
+        StringBuilder atomContent = new StringBuilder();
+
+        if (tokens.get(i).equals("(")) {
+
+            if (KEYWORDS.contains(tokens.get(i+1))) {
+                result.setCount(i);
+                result = executeKeyWords(tokens, result);
+                atomContent.append(result.getValue());
+                i = result.getCount() + 1;
+
+            } else {
+
+                atomContent.append(tokens.get(i)).append(" ");
+
+                int parentesisHandler = 1; 
+                i++;
+                
+                while (parentesisHandler > 0)  {
+                    String token = tokens.get(i);
+                    if (token.equals("(")){
+                        parentesisHandler++;
+                    }      
+                    else if (token.equals(")")){
+                        parentesisHandler--;
+                    }
+                    
+                    atomContent.append(token).append(" ");
+                    i++;
+                }
+                
+            }
         }
         
-        StringBuilder quoteBody = new StringBuilder();
-        int parentesisHandler = 0;
-    
-        if (tokens.get(i).equals("(")) {
-            parentesisHandler = 1;
-            quoteBody.append(tokens.get(i)).append(" ");
-            i++;
-    
-            if (KEYWORDS.contains(tokens.get(i))) {
-                logic.setCount(i);
-                logic = executeKeyWords(tokens, logic);
-                String value = logic.getValue();
-                quoteBody.append(value).append(" ");
-                System.out.println("Valor: "+value);
-            }
-    
-            while (parentesisHandler > 0 && i < tokens.size()) {
-                String token = tokens.get(i);
-    
-                if (token.equals("(")) {
-                    parentesisHandler++;
-                } else if (token.equals(")")) {
-                    parentesisHandler--;
-                }
-                quoteBody.append(token).append(" ");
-                i++;
-            }
-        }  
-        quote.setExpresion(quoteBody);
-        System.out.print(quote.isAtom());
+        
+        atom.setExpresion(atomContent);
+        System.out.println(atom.isAtom());
+        System.out.println("Contenido: " + atom.getExpresion());
         logic.increment(i - logic.getCount());
+
+        return logic;
+
+    }
+
+    public Counter list (ArrayList<String> tokens, Counter logic){
+        int i = logic.getCount() + 2;  
+        Counter result = new Counter();
+        Quote atom = new Quote();
+        StringBuilder atomContent = new StringBuilder();
+
+
+        if (tokens.get(i).equals("(")) {
+
+            if (KEYWORDS.contains(tokens.get(i+1))) {
+                result.setCount(i);
+                result = executeKeyWords(tokens, result);
+                atomContent.append(result.getValue());
+                i = result.getCount() + 1;
+
+            } else {
+
+                atomContent.append(tokens.get(i)).append(" ");
+
+                int parentesisHandler = 1; 
+                i++;
+                
+                while (parentesisHandler > 0)  {
+                    String token = tokens.get(i);
+                    if (token.equals("(")){
+                        parentesisHandler++;
+                    }      
+                    else if (token.equals(")")){
+                        parentesisHandler--;
+                    }
+                    
+                    atomContent.append(token).append(" ");
+                    i++;
+                }
+                
+            }
+        }
+        
+        
+        atom.setExpresion(atomContent);
+        System.out.println(atom.isList());
+        System.out.println("Contenido: " + atom.getExpresion());
+        logic.increment(i - logic.getCount());
+
         return logic;
     }
 
