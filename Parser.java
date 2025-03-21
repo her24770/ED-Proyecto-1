@@ -254,6 +254,7 @@ public class Parser {
         quote.setExpresion(quoteBodyBuilder);
         System.out.print(quote.toString());
         logic.increment(i - logic.getCount());
+        logic.setValue(quote.toAtom());
         return logic;
     }
 
@@ -313,16 +314,20 @@ public class Parser {
             else if(tokens.get(i).equals("(")){
                 Defun defunsearch = searchDefun(functions, tokens.get(i+1));
                 if (defunsearch!=null){                    
-                    logic.setCount(i+1);
-                    int increment = logic.getCount();
+                    logic.setCount(i);
                     logic = executeKeyWords(tokens, logic);
-                    increment = logic.getCount()-increment;
                     values.add(logic.getValue());
                     i = logic.getCount()+1;
                     logic.increment(1);
+                }
+                else if(tokens.get(i+1).equals("quote") || tokens.get(i+1).equals("'")){
+                    logic.setCount(i);
+                    logic = quote(tokens, logic);
+                    values.add(logic.getValue());
+                    i=logic.getCount()+1;
 
-                    executeKeyWords(tokens, logic);
-                }else{
+                }
+                else{
                     Counter counter = new Counter();
                     counter.setCount(i);
                     values.add(String.valueOf(arithmeticOperation(tokens, counter).getValue()));
